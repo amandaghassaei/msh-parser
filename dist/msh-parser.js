@@ -92,7 +92,8 @@
             // Join the numbers in ascending order into a string with commas.
             return "".concat(min, ",").concat(remaining, ",").concat(max);
         };
-        MSHParser.prototype._parse = function (arrayBuffer, callback) {
+        MSHParser.prototype._parse = function (arrayBuffer) {
+            this._offset = 0; // Reset header offset.
             var dataView = new DataView(arrayBuffer);
             // Create a Uint8Array that references the same underlying memory as the DataView.
             var uint8Array = new Uint8Array(dataView.buffer);
@@ -294,36 +295,48 @@
                 }
                 mesh.exteriorFacesArray = exteriorFacesArray;
             }
-            // Call the callback function with the parsed mesh data.
-            callback(mesh);
+            return mesh;
+        };
+        MSHParser.prototype.parseSync = function (url) {
+            if (typeof window !== 'undefined') {
+                throw new Error('Cannot call parser.parseSync() from a browser.');
+            }
+            // Load the file with fs.
+            var fs = require('fs');
+            var fileBuffer = fs.readFileSync(url);
+            return this._parse(Buffer.from(fileBuffer).buffer);
         };
         // Parse the .msh file at the specified file path of File object.
+        // Made this compatible with Node and the browser, maybe there is a better way?
         MSHParser.prototype.parse = function (urlOrFile, callback) {
-            this._offset = 0; // Reset header offset.
             var self = this;
             if (typeof urlOrFile === 'string') {
                 if (typeof window !== 'undefined') {
-                    // Load the file.
+                    // Load the file with XMLHttpRequest.
                     var request_1 = new XMLHttpRequest();
                     request_1.open('GET', urlOrFile, true);
                     request_1.responseType = 'arraybuffer';
                     request_1.onload = function () {
-                        self._parse(request_1.response, callback);
+                        var mesh = self._parse(request_1.response);
+                        // Call the callback function with the parsed mesh data.
+                        callback(mesh);
                     };
                     request_1.send();
                 }
                 else {
-                    var fs = require('fs');
-                    var fileBuffer = fs.readFileSync(urlOrFile);
-                    self._parse(Buffer.from(fileBuffer).buffer, callback);
+                    // Call the callback function with the parsed mesh data.
+                    callback(this.parseSync(urlOrFile));
                 }
             }
             else {
                 // We only ever hit this in the browser.
+                // Load the file with FileReader.
                 if (!MSHParser.reader)
                     MSHParser.reader = new FileReader();
                 MSHParser.reader.onload = function () {
-                    self._parse(MSHParser.reader.result, callback);
+                    var mesh = self._parse(MSHParser.reader.result);
+                    // Call the callback function with the parsed mesh data.
+                    callback(mesh);
                 };
                 MSHParser.reader.readAsArrayBuffer(urlOrFile);
             }

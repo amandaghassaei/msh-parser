@@ -88,7 +88,7 @@ parser.parse('./bunny.msh', (mesh) => {
 ```
 - `numExteriorNodes` (tet-meshes only for now) is the number of nodes that lie on the exterior of the mesh.  `nodesArray` has been ordered so that the nodes in the range [0, numExteriorNodes - 1] correspond to the nodes referenced by `exteriorFacesArray`.
 
-msh-parser also contains some helper functions for analyzing the mesh data:
+msh-parser also contains helper functions for analyzing the mesh data:
 
 - `MSHParser.calculateEdges(mesh)` returns a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: [e01, e02, e11, e12, ...].  This function is only implemented for tet-meshes at the moment.
 
