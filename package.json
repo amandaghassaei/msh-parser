@@ -1,0 +1,43 @@
+{
+  "name": "msh-parser",
+  "version": "1.0.0",
+  "description": "Finite element .msh format parser, written in TypeScript",
+  "main": "dist/msh-parser.js",
+  "types": "dist/types/msh-parser.d.ts",
+  "keywords": [
+    "msh",
+    ".msh",
+    "parse",
+    "parser",
+    "gmesh",
+    "finite element",
+    "tetrahedral mesh",
+    "tetmesh",
+    "3d",
+    "mesh",
+	"FEM"
+  ],
+  "scripts": {
+    "build": "rollup --config",
+    "test": "mocha"
+  },
+  "homepage": "https://apps.amandaghassaei.com/msh-parser/demo/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amandaghassaei/msh-parser.git"
+  },
+  "author": "Amanda Ghassaei",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/amandaghassaei/msh-parser/issues"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^10.0.1",
+    "@types/node": "^18.11.11",
+    "chai": "^4.3.7",
+    "mocha": "^10.1.0",
+    "rollup": "^3.6.0",
+    "tslib": "^2.4.1",
+    "typescript": "^4.9.3"
+  }
+}
