@@ -66,6 +66,11 @@ parser.parse('./bunny.msh', (mesh) => {
     numExteriorNodes,
   } = mesh;
 });
+
+// Also try:
+// const mesh = await parser.parseAsync('./bunny.msh');
+// Nodejs only:
+// const mesh = parser.parseSync('./bunny.msh');
 ```
 
 - `nodesArray` is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
