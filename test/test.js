@@ -83,6 +83,43 @@ describe('MshParser', () => {
 			expect(numExteriorNodes).to.equal(7202);
 		});
 	});
+	describe('parseAsync', () => {
+		const parser = new MSHParser();
+		it('parses stanford_bunny.msh', async () => {
+			const mesh = await parser.parseAsync('./test/msh/stanford_bunny.msh');
+			const {
+				nodesArray,
+				elementsNodesArray,
+				isTetMesh,
+				exteriorFacesArray,
+				numExteriorNodes,
+			} = mesh;
+			expect(nodesArray.constructor).to.equal(Float64Array);
+			expect(nodesArray.length).to.equal(25476);
+			expect(elementsNodesArray.length).to.equal(27232);
+			expect(elementsNodesArray[0].length).to.equal(4);
+			expect(isTetMesh).to.equal(true);
+			expect(exteriorFacesArray.length).to.equal(14024);
+			expect(numExteriorNodes).to.equal(7014);
+		});
+		it('parses wingnut.msh', async () => {
+			const mesh = await parser.parseAsync('./test/msh/wingnut.msh');
+			const {
+				nodesArray,
+				elementsNodesArray,
+				isTetMesh,
+				exteriorFacesArray,
+				numExteriorNodes,
+			} = mesh;
+			expect(nodesArray.constructor).to.equal(Float64Array);
+			expect(nodesArray.length).to.equal(36252);
+			expect(elementsNodesArray.length).to.equal(48419);
+			expect(elementsNodesArray[0].length).to.equal(4);
+			expect(isTetMesh).to.equal(true);
+			expect(exteriorFacesArray.length).to.equal(14404);
+			expect(numExteriorNodes).to.equal(7202);
+		});
+	});
 	describe('helper functions', () => {
 		const parser = new MSHParser();
 		it('calculates edges', () => {

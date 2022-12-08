@@ -44,6 +44,7 @@ export declare class MSHParser {
     static makeTriHash(a: number, b: number, c: number): string;
     _parse(arrayBuffer: ArrayBuffer): MSHData;
     parseSync(url: string): MSHData;
+    parseAsync(urlOrFile: string | File): Promise<MSHData>;
     parse(urlOrFile: string | File, callback: (mesh: MSHData) => void): void;
     static calculateEdges(mesh: MSHData): Uint32Array;
 }

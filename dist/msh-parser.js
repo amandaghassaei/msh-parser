@@ -306,6 +306,14 @@
             var fileBuffer = fs.readFileSync(url);
             return this._parse(Buffer.from(fileBuffer).buffer);
         };
+        MSHParser.prototype.parseAsync = function (urlOrFile) {
+            var self = this;
+            return new Promise(function (resolve) {
+                self.parse(urlOrFile, function (mesh) {
+                    resolve(mesh);
+                });
+            });
+        };
         // Parse the .msh file at the specified file path of File object.
         // Made this compatible with Node and the browser, maybe there is a better way?
         MSHParser.prototype.parse = function (urlOrFile, callback) {

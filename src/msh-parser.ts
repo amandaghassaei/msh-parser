@@ -322,6 +322,15 @@ export class MSHParser {
 		return this._parse(Buffer.from(fileBuffer).buffer);
 	}
 
+	parseAsync(urlOrFile: string | File) {
+		const self = this;
+		return new Promise<MSHData>((resolve) => {
+			self.parse(urlOrFile, (mesh) => {
+				resolve(mesh);
+			});
+		});
+	}
+
 	// Parse the .msh file at the specified file path of File object.
 	// Made this compatible with Node and the browser, maybe there is a better way?
 	parse(urlOrFile: string | File, callback: (mesh: MSHData) => void) {
