@@ -9,7 +9,6 @@
     ".msh",
     "parse",
     "parser",
-    "gmesh",
     "finite element",
     "tetrahedral mesh",
     "tetmesh",
