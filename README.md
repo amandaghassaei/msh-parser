@@ -60,7 +60,7 @@ const parser = new MSHParser();
 parser.parse('./bunny.msh', (mesh) => {
   const {
     nodesArray,
-    elementsNodesArray,
+    elementsArray,
     isTetMesh,
     exteriorFacesArray,
     numExteriorNodes,
@@ -74,7 +74,7 @@ parser.parse('./bunny.msh', (mesh) => {
 ```
 
 - `nodesArray` is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
-- `elementsNodesArray` is a 2 dimensional array of node indices corresponding to the finite elements of the mesh.  For a tetrahedral mesh, all elements will contain four node indices, but element length may vary for other types of meshes.  `elementsNodesArray` has the following structure:
+- `elementsArray` is a 2 dimensional array of node indices corresponding to the finite elements of the mesh.  For a tetrahedral mesh, all elements will contain four node indices, but element length may vary for other types of meshes.  `elementsArray` has the following structure:
 ```js
 [
   [e0a, e0b, e0c, e0d], // Element 0

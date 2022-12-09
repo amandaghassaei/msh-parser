@@ -157,9 +157,9 @@
                 MSHParser._throwInvalidFormatError();
             // Read the number of elements.
             var numElements = parseInt(this._parseNextLineAsUTF8(uint8Array));
-            var elementsNodesArray = [];
+            var elementsArray = [];
             for (var i = 0; i < numElements; i++) {
-                elementsNodesArray.push([]);
+                elementsArray.push([]);
             }
             // Check if all elements are tetrahedra.
             var isTetMesh = true;
@@ -191,7 +191,7 @@
                             // Update the current file's byte offset.
                             this._offset += 4;
                         }
-                        var nodeIndices = elementsNodesArray[index];
+                        var nodeIndices = elementsArray[index];
                         for (var j = 0; j < numElementNodes; j++) {
                             var nodeIndex = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
                             if (!MSHParser._isFiniteNumber(nodeIndex))
@@ -213,7 +213,7 @@
                 MSHParser._throwInvalidFormatError();
             var mesh = {
                 nodesArray: nodesArray,
-                elementsNodesArray: elementsNodesArray,
+                elementsArray: elementsArray,
                 isTetMesh: isTetMesh,
             };
             // TODO: make this work for non-tet.
@@ -222,7 +222,7 @@
                 // First find all faces that are covered only once, these are on the boundary.
                 var hash = {};
                 for (var i = 0; i < numElements; i++) {
-                    var indices = elementsNodesArray[i];
+                    var indices = elementsArray[i];
                     for (var j = 0; j < indices.length; j++) {
                         var key = MSHParser.makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
                         if (hash[key]) {
@@ -273,7 +273,7 @@
                         currentIndex++;
                     }
                 }
-                // Now that we have a mapping, update nodesArrays, elementsNodesArray, and exteriorFacesArray.
+                // Now that we have a mapping, update nodesArrays, elementsArray, and exteriorFacesArray.
                 var newNodesArray = nodesArray.slice();
                 for (var i = 0; i < numNodes; i++) {
                     for (var j = 0; j < 3; j++) {
@@ -282,7 +282,7 @@
                 }
                 mesh.nodesArray = newNodesArray;
                 for (var i = 0; i < numElements; i++) {
-                    var indices = elementsNodesArray[i];
+                    var indices = elementsArray[i];
                     for (var j = 0; j < indices.length; j++) {
                         indices[j] = newIndices[indices[j]];
                     }
@@ -350,13 +350,13 @@
             }
         };
         MSHParser.calculateEdges = function (mesh) {
-            var elementsNodesArray = mesh.elementsNodesArray, isTetMesh = mesh.isTetMesh;
+            var elementsArray = mesh.elementsArray, isTetMesh = mesh.isTetMesh;
             if (!isTetMesh)
                 throw new Error("MSHParser.calculateEdges() is not defined for non-tet meshes.");
             // Calc all edges in mesh, use hash table to cover each edge only once.
             var hash = {};
-            for (var i = 0, numElements = elementsNodesArray.length; i < numElements; i++) {
-                var elementIndices = elementsNodesArray[i];
+            for (var i = 0, numElements = elementsArray.length; i < numElements; i++) {
+                var elementIndices = elementsArray[i];
                 // For tetrahedra, create an edge between each pair of nodes in element.
                 var numNodes = elementIndices.length;
                 for (var j = 0; j < numNodes; j++) {

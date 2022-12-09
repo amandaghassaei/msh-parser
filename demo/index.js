@@ -32,6 +32,7 @@ function makeTriHash(a, b, c) {
 const shaderMaterial = new THREE.ShaderMaterial({
 	side: THREE.DoubleSide,
 	// Polygon offset will have no effect on wireframe.
+	// (we are using this same material for both meshes and wireframe.)
 	polygonOffset: true,
 	polygonOffsetFactor: 1,
 	polygonOffsetUnits: 1,
@@ -114,17 +115,17 @@ function initExternalMesh(positionsAttribute, exteriorFacesArray) {
 	return mesh;
 }
 
-function initInternalMesh(positionsAttribute, elementsNodesArray, numExteriorNodes) {
+function initInternalMesh(positionsAttribute, elementsArray, numExteriorNodes) {
 	// Remove previous mesh.
 	if (internalMesh) removeThreeObject(internalMesh);
 
 	// Init internal mesh.
-	const numElements = elementsNodesArray.length;
+	const numElements = elementsArray.length;
 	const indices = new Uint32Array(numElements * 4 * 3);
 	const hash = {};
 	// First calc all internal triangles.
 	for (let i = 0; i < numElements; i++) {
-		const nodeIndices = elementsNodesArray[i];
+		const nodeIndices = elementsArray[i];
 		for (let j = 0; j < 4; j++) {
 			const a = nodeIndices[j];
 			const b = nodeIndices[(j + 1) % 4];
@@ -182,7 +183,7 @@ function initWireframe(positionsAttribute, mshData) {
 function initThreeJSGeometry(mshData) {
 	const {
 		nodesArray,
-		elementsNodesArray,
+		elementsArray,
 		isTetMesh,
 		exteriorFacesArray,
 		numExteriorNodes,
@@ -198,7 +199,7 @@ function initThreeJSGeometry(mshData) {
 	const positionsAttribute = new THREE.BufferAttribute(positions, 3);
 
 	externalMesh = initExternalMesh(positionsAttribute, exteriorFacesArray);
-	internalMesh = initInternalMesh(positionsAttribute, elementsNodesArray, numExteriorNodes);
+	internalMesh = initInternalMesh(positionsAttribute, elementsArray, numExteriorNodes);
 	wireframe = initWireframe(positionsAttribute, mshData);
 
 	// Center and scale the positions attribute.
@@ -239,7 +240,7 @@ window.addEventListener('resize', () => {
 	camera.bottom = viewSize / -2;
 	camera.updateProjectionMatrix();
 	render();
-})
+});
 
 // Create a renderer and add it to the page.
 const renderer = new THREE.WebGLRenderer({ antialias: true });

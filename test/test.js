@@ -13,15 +13,15 @@ describe('MshParser', () => {
 			parser.parse('./test/msh/stanford_bunny.msh', (mesh) => {
 				const {
 					nodesArray,
-					elementsNodesArray,
+					elementsArray,
 					isTetMesh,
 					exteriorFacesArray,
 					numExteriorNodes,
 				} = mesh;
 				expect(nodesArray.constructor).to.equal(Float64Array);
 				expect(nodesArray.length).to.equal(25476);
-				expect(elementsNodesArray.length).to.equal(27232);
-				expect(elementsNodesArray[0].length).to.equal(4);
+				expect(elementsArray.length).to.equal(27232);
+				expect(elementsArray[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
 				expect(exteriorFacesArray.length).to.equal(14024);
 				expect(numExteriorNodes).to.equal(7014);
@@ -31,15 +31,15 @@ describe('MshParser', () => {
 			parser.parse('./test/msh/wingnut.msh', (mesh) => {
 				const {
 					nodesArray,
-					elementsNodesArray,
+					elementsArray,
 					isTetMesh,
 					exteriorFacesArray,
 					numExteriorNodes,
 				} = mesh;
 				expect(nodesArray.constructor).to.equal(Float64Array);
 				expect(nodesArray.length).to.equal(36252);
-				expect(elementsNodesArray.length).to.equal(48419);
-				expect(elementsNodesArray[0].length).to.equal(4);
+				expect(elementsArray.length).to.equal(48419);
+				expect(elementsArray[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
 				expect(exteriorFacesArray.length).to.equal(14404);
 				expect(numExteriorNodes).to.equal(7202);
@@ -52,15 +52,15 @@ describe('MshParser', () => {
 			const mesh = parser.parseSync('./test/msh/stanford_bunny.msh');
 			const {
 				nodesArray,
-				elementsNodesArray,
+				elementsArray,
 				isTetMesh,
 				exteriorFacesArray,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodesArray.constructor).to.equal(Float64Array);
 			expect(nodesArray.length).to.equal(25476);
-			expect(elementsNodesArray.length).to.equal(27232);
-			expect(elementsNodesArray[0].length).to.equal(4);
+			expect(elementsArray.length).to.equal(27232);
+			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray.length).to.equal(14024);
 			expect(numExteriorNodes).to.equal(7014);
@@ -69,15 +69,15 @@ describe('MshParser', () => {
 			const mesh = parser.parseSync('./test/msh/wingnut.msh');
 			const {
 				nodesArray,
-				elementsNodesArray,
+				elementsArray,
 				isTetMesh,
 				exteriorFacesArray,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodesArray.constructor).to.equal(Float64Array);
 			expect(nodesArray.length).to.equal(36252);
-			expect(elementsNodesArray.length).to.equal(48419);
-			expect(elementsNodesArray[0].length).to.equal(4);
+			expect(elementsArray.length).to.equal(48419);
+			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray.length).to.equal(14404);
 			expect(numExteriorNodes).to.equal(7202);
@@ -89,15 +89,15 @@ describe('MshParser', () => {
 			const mesh = await parser.parseAsync('./test/msh/stanford_bunny.msh');
 			const {
 				nodesArray,
-				elementsNodesArray,
+				elementsArray,
 				isTetMesh,
 				exteriorFacesArray,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodesArray.constructor).to.equal(Float64Array);
 			expect(nodesArray.length).to.equal(25476);
-			expect(elementsNodesArray.length).to.equal(27232);
-			expect(elementsNodesArray[0].length).to.equal(4);
+			expect(elementsArray.length).to.equal(27232);
+			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray.length).to.equal(14024);
 			expect(numExteriorNodes).to.equal(7014);
@@ -106,15 +106,15 @@ describe('MshParser', () => {
 			const mesh = await parser.parseAsync('./test/msh/wingnut.msh');
 			const {
 				nodesArray,
-				elementsNodesArray,
+				elementsArray,
 				isTetMesh,
 				exteriorFacesArray,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodesArray.constructor).to.equal(Float64Array);
 			expect(nodesArray.length).to.equal(36252);
-			expect(elementsNodesArray.length).to.equal(48419);
-			expect(elementsNodesArray[0].length).to.equal(4);
+			expect(elementsArray.length).to.equal(48419);
+			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray.length).to.equal(14404);
 			expect(numExteriorNodes).to.equal(7202);

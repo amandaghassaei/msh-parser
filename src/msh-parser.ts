@@ -1,6 +1,6 @@
 export type MSHData = {
 	nodesArray: Float64Array | Float32Array,
-	elementsNodesArray: number[][],
+	elementsArray: number[][],
 	isTetMesh: boolean,
 	exteriorFacesArray?: number[][],
 	numExteriorNodes?: number,
@@ -170,9 +170,9 @@ export class MSHParser {
 
 		// Read the number of elements.
 		const numElements = parseInt(this._parseNextLineAsUTF8(uint8Array));
-		const elementsNodesArray: number[][] = [];
+		const elementsArray: number[][] = [];
 		for (let i = 0; i < numElements; i++) {
-			elementsNodesArray.push([]);
+			elementsArray.push([]);
 		}
 		// Check if all elements are tetrahedra.
 		let isTetMesh = true;
@@ -203,7 +203,7 @@ export class MSHParser {
 						this._offset += 4;
 					}
 					
-					const nodeIndices = elementsNodesArray[index];
+					const nodeIndices = elementsArray[index];
 					for (let j = 0; j < numElementNodes; j++) {
 						const nodeIndex = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
 						if (!MSHParser._isFiniteNumber(nodeIndex)) throw new Error('NaN or Inf detected in input file.');
@@ -223,7 +223,7 @@ export class MSHParser {
 
 		const mesh: MSHData = {
 			nodesArray,
-			elementsNodesArray,
+			elementsArray,
 			isTetMesh,
 		};
 
@@ -233,7 +233,7 @@ export class MSHParser {
 			// First find all faces that are covered only once, these are on the boundary.
 			const hash: { [key: string]: number[] } = {};
 			for (let i = 0; i < numElements; i++) {
-				const indices = elementsNodesArray[i];
+				const indices = elementsArray[i];
 				for (let j = 0; j < indices.length; j++) {
 					const key = MSHParser.makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
 					if (hash[key]) {
@@ -286,16 +286,16 @@ export class MSHParser {
 					currentIndex++;
 				}
 			}
-			// Now that we have a mapping, update nodesArrays, elementsNodesArray, and exteriorFacesArray.
+			// Now that we have a mapping, update nodesArrays, elementsArray, and exteriorFacesArray.
 			const newNodesArray = nodesArray.slice();
 			for (let i = 0; i < numNodes; i++) {
 				for (let j = 0; j < 3; j++) {
 					newNodesArray[3 * newIndices[i] + j] = nodesArray[3 * i + j];
 				}
 			}
-			mesh.nodesArray= newNodesArray;
+			mesh.nodesArray = newNodesArray;
 			for (let i = 0; i < numElements; i++) {
-				const indices = elementsNodesArray[i];
+				const indices = elementsArray[i];
 				for (let j = 0; j < indices.length; j++) {
 					indices[j] = newIndices[indices[j]];
 				}
@@ -365,12 +365,12 @@ export class MSHParser {
 	}
 
 	static calculateEdges(mesh: MSHData) {
-		const { elementsNodesArray, isTetMesh } = mesh;
+		const { elementsArray, isTetMesh } = mesh;
 		if (!isTetMesh) throw new Error(`MSHParser.calculateEdges() is not defined for non-tet meshes.`);
 		// Calc all edges in mesh, use hash table to cover each edge only once.
 		const hash: { [key: string]: boolean } = {};
-		for (let i = 0, numElements = elementsNodesArray.length; i < numElements; i++) {
-			const elementIndices = elementsNodesArray[i];
+		for (let i = 0, numElements = elementsArray.length; i < numElements; i++) {
+			const elementIndices = elementsArray[i];
 			// For tetrahedra, create an edge between each pair of nodes in element.
 			const numNodes = elementIndices.length;
 			for (let j = 0; j < numNodes; j++) {

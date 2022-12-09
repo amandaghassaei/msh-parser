@@ -1,6 +1,6 @@
 export type MSHData = {
     nodesArray: Float64Array | Float32Array;
-    elementsNodesArray: number[][];
+    elementsArray: number[][];
     isTetMesh: boolean;
     exteriorFacesArray?: number[][];
     numExteriorNodes?: number;
