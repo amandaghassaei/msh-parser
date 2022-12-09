@@ -1,6 +1,6 @@
 {
   "name": "msh-parser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Finite element .msh format parser, written in TypeScript",
   "main": "dist/msh-parser.js",
   "types": "dist/types/msh-parser.d.ts",
@@ -15,8 +15,8 @@
     "tetmesh",
     "3d",
     "mesh",
-	"FEM",
-	"gmsh"
+    "FEM",
+    "gmsh"
   ],
   "scripts": {
     "build": "rollup --config",
