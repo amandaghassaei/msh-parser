@@ -4,7 +4,7 @@
 [![NPM Package](https://img.shields.io/npm/v/msh-parser)](https://www.npmjs.com/package/msh-parser)
 [![Build Size](https://img.shields.io/bundlephobia/min/msh-parser)](https://bundlephobia.com/result?p=msh-parser)
 [![NPM Downloads](https://img.shields.io/npm/dw/msh-parser)](https://www.npmtrends.com/msh-parser)
-[![License](https://img.shields.io/npm/l/msh-parser)](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE)
+[![License](https://img.shields.io/npm/l/msh-parser)](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt)
 
 Finite element .msh format parser, written in TypeScript.
 
