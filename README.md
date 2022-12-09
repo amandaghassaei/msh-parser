@@ -96,6 +96,7 @@ parser.parse('./bunny.msh', (mesh) => {
 msh-parser also contains helper functions for analyzing the mesh data:
 
 - `MSHParser.calculateEdges(mesh)` returns a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: [e01, e02, e11, e12, ...].  This function is only implemented for tet-meshes at the moment.
+- `MSHParser.calculateElementVolumes(mesh)` returns a Float32Array containing the volume of all elements in the mesh.  This function is only implemented for tet-meshes at the moment.
 
 
 ## Limitations
