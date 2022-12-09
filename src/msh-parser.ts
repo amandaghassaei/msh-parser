@@ -20,10 +20,7 @@ export class MSHParser {
 	constructor() {
 	}
 
-	/**
-	 * @private
-	 */
-	_parseNextLineAsUTF8(uint8Array: Uint8Array) {
+	private _parseNextLineAsUTF8(uint8Array: Uint8Array) {
 		// Find the first newline character in the uint8Array.
 		const newlineIndex = uint8Array.indexOf(10, this._offset); // 10 is the ASCII code for the newline character.
 		// Decode the uint8Array as a UTF-8 encoded string up until the newline character.
@@ -34,24 +31,15 @@ export class MSHParser {
 		return text;
 	}
 
-	/**
-	 * @private
-	 */
-	static _throwInvalidFormatError() {
+	private static _throwInvalidFormatError() {
 		throw new Error('Invalid .msh file format.');
 	}
 
-	/**
-	 * @private
-	 */
-	static _isFiniteNumber(number: number) {
+	private static _isFiniteNumber(number: number) {
 		return !isNaN(number) && number !== Infinity && number !== -Infinity;
 	}
 
-	/**
-	 * @private
-	 */
-	static _numNodesPerElementType(elementType: number) {
+	private static _numNodesPerElementType(elementType: number) {
 		switch (elementType) {
 			case 2:
 				return 3; // Triangle
@@ -65,40 +53,30 @@ export class MSHParser {
 				throw new Error(`Element type ${elementType} is not supported yet.`);
 		}
 	}
-
-	/**
-	 * @private
-	 */
-	static _crossProduct(a: number[], b: number[]) {
+	
+	// Calculates the dot product of two vectors.
+	private static _dotProduct(vector1: number[], vector2: number[]) {
+		return vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2];
+	}
+	
+	// Calculates the cross product of two vectors.
+	private static _crossProduct(vector1: number[], vector2: number[]) {
 		return [
-			a[1] * b[2] - a[2] * b[1],
-			a[2] * b[0] - a[0] * b[2],
-			a[0] * b[1] - a[1] * b[0],
+			vector1[1] * vector2[2] - vector1[2] * vector2[1],
+			vector1[2] * vector2[0] - vector1[0] * vector2[2],
+			vector1[0] * vector2[1] - vector1[1] * vector2[0]
 		];
 	}
 
-	/**
-	 * @private
-	 */
-	static _dotProduct(a: number[], b: number[]) {
-		return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-	}
-
-	/**
-	 * @private
-	 */
-	static _vecFromTo(index1: number, index2: number, nodesArray: Float32Array | Float64Array) {
+	private static _vecFromTo(from: number, to: number, nodesArray: Float32Array | Float64Array) {
 		return [
-			nodesArray[3 * index2] - nodesArray[3 * index1],
-			nodesArray[3 * index2 + 1] - nodesArray[3 * index1 + 1],
-			nodesArray[3 * index2 + 2] - nodesArray[3 * index1 + 2],
+			nodesArray[3 * to] - nodesArray[3 * from],
+			nodesArray[3 * to + 1] - nodesArray[3 * from + 1],
+			nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
 		];
 	}
 
-	/**
-	 * @private
-	 */
-	static makeTriHash(a: number, b: number, c: number) {
+	private static _makeTriHash(a: number, b: number, c: number) {
 		// Find the minimum and maximum of the input numbers.
 		const min = Math.min(a, b, c);
 		const max = Math.max(a, b, c);
@@ -110,7 +88,7 @@ export class MSHParser {
 		return`${min},${remaining},${max}`;
 	}
 	
-	_parse(arrayBuffer: ArrayBuffer) {
+	private _parse(arrayBuffer: ArrayBuffer) {
 		this._offset = 0; // Reset header offset.
 		const dataView = new DataView(arrayBuffer);
 		// Create a Uint8Array that references the same underlying memory as the DataView.
@@ -235,7 +213,7 @@ export class MSHParser {
 			for (let i = 0; i < numElements; i++) {
 				const indices = elementsArray[i];
 				for (let j = 0; j < indices.length; j++) {
-					const key = MSHParser.makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
+					const key = MSHParser._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
 					if (hash[key]) {
 						hash[key].push(indices[(j + 3) % indices.length]);
 						if (hash[key].length > 2) {
@@ -391,5 +369,29 @@ export class MSHParser {
 			edgesArray[2 * i + 1] = parseInt(indices[1]);
 		}
 		return edgesArray;
+	}
+
+	private static _tetrahedronVolume(indices: number[], nodesArray: Float32Array | Float64Array) {
+		const [a, b, c, d] = indices;
+		// Calculate the vectors representing the edges of the tetrahedron.
+		const v1 = MSHParser._vecFromTo(d, a, nodesArray);
+		const v2 = MSHParser._vecFromTo(d, b, nodesArray);
+		const v3 = MSHParser._vecFromTo(d, c, nodesArray);
+	  
+		// Calculate the volume of the tetrahedron using the formula.
+		// (1/6) * |v1 . (v2 x v3)|
+		// https://en.wikipedia.org/wiki/Tetrahedron#Volume
+		return Math.abs(MSHParser._dotProduct(v1, MSHParser._crossProduct(v2, v3))) / 6;
+	}
+
+	static calculateElementVolumes(mesh: MSHData) {
+		const { elementsArray, nodesArray, isTetMesh } = mesh;
+		if (!isTetMesh) throw new Error(`MSHParser.calculateElementVolumes() is not defined for non-tet meshes.`);
+		const numElements = elementsArray.length;
+		const volumes = new Float32Array(numElements);
+		for (let i = 0; i < numElements; i++) {
+			volumes[i] = MSHParser._tetrahedronVolume(elementsArray[i], nodesArray);
+		}
+		return volumes;
 	}
 }

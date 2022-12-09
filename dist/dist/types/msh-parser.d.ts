@@ -10,41 +10,19 @@ export declare class MSHParser {
     static decoder: TextDecoder;
     _offset: number;
     constructor();
-    /**
-     * @private
-     */
-    _parseNextLineAsUTF8(uint8Array: Uint8Array): string;
-    /**
-     * @private
-     */
-    static _throwInvalidFormatError(): void;
-    /**
-     * @private
-     */
-    static _isFiniteNumber(number: number): boolean;
-    /**
-     * @private
-     */
-    static _numNodesPerElementType(elementType: number): 3 | 4 | 8;
-    /**
-     * @private
-     */
-    static _crossProduct(a: number[], b: number[]): number[];
-    /**
-     * @private
-     */
-    static _dotProduct(a: number[], b: number[]): number;
-    /**
-     * @private
-     */
-    static _vecFromTo(index1: number, index2: number, nodesArray: Float32Array | Float64Array): number[];
-    /**
-     * @private
-     */
-    static makeTriHash(a: number, b: number, c: number): string;
-    _parse(arrayBuffer: ArrayBuffer): MSHData;
+    private _parseNextLineAsUTF8;
+    private static _throwInvalidFormatError;
+    private static _isFiniteNumber;
+    private static _numNodesPerElementType;
+    private static _dotProduct;
+    private static _crossProduct;
+    private static _vecFromTo;
+    private static _makeTriHash;
+    private _parse;
     parseSync(url: string): MSHData;
     parseAsync(urlOrFile: string | File): Promise<MSHData>;
     parse(urlOrFile: string | File, callback: (mesh: MSHData) => void): void;
     static calculateEdges(mesh: MSHData): Uint32Array;
+    private static _tetrahedronVolume;
+    static calculateElementVolumes(mesh: MSHData): Float32Array;
 }
