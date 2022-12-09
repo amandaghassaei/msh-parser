@@ -15,7 +15,8 @@
     "tetmesh",
     "3d",
     "mesh",
-	"FEM"
+	"FEM",
+	"gmsh"
   ],
   "scripts": {
     "build": "rollup --config",
