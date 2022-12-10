@@ -218,6 +218,10 @@ function initThreeJSGeometry(mshData) {
 	const scale = 1 / externalMesh.geometry.boundingSphere.radius;
 	externalMesh.geometry.scale(scale, scale, scale);
 
+	// Update uniforms.
+	internalMesh.material.uniforms.u_xOffset.value = PARAMS.xOffset;
+	externalMesh.material.uniforms.u_xOffset.value = PARAMS.xOffset;
+	wireframe.material.uniforms.u_xOffset.value = PARAMS.xOffset;
 	// Render.
 	render();
 }
