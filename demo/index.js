@@ -1,5 +1,11 @@
 const { MSHParser } = MSHParserLib;
 
+const BUNNY_URL = '../test/msh/stanford_bunny.msh';
+const WINGNUT_URL = '../test/msh/wingnut.msh';
+const DUCK_URL = '../test/msh/duck.msh';
+const COUCH_URL = '../test/msh/couch.msh';
+const KNIGHT_URL = '../test/msh/knight.msh';
+
 const PARAMS = {
 	factor: 123,
 	title: 'hello',
@@ -8,12 +14,13 @@ const PARAMS = {
 	background: '#eeeeee',
 	wireframe: '#000000',
 	xOffset: 0.25,
+	url: BUNNY_URL,
 };
 
 // Create a new parser instance,
 const parser = new MSHParser();
 // Parse the .msh file using the specified file path.
-parser.parse('../test/msh/stanford_bunny.msh', initThreeJSGeometry);
+parser.parse(PARAMS.url, initThreeJSGeometry);
 
 let internalMesh, externalMesh, wireframe;
 
@@ -368,4 +375,16 @@ pane.addButton({
 	title: 'Upload .msh (or Drop/Paste)',
 }).on('click', () => {
 	fileInput.click();
+});
+pane.addInput(PARAMS, 'url', {
+	label: 'File',
+	options: {
+	  Bunny: BUNNY_URL,
+	  Wingnut: WINGNUT_URL,
+	  Duck: DUCK_URL,
+	  Couch: COUCH_URL,
+	  Knight: KNIGHT_URL,
+	},
+}).on('change', () => {
+	parser.parse(PARAMS.url, initThreeJSGeometry);
 });

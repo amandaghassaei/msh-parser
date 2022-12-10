@@ -37,12 +37,12 @@ describe('MshParser', () => {
 					numExteriorNodes,
 				} = mesh;
 				expect(nodesArray.constructor).to.equal(Float64Array);
-				expect(nodesArray.length).to.equal(36252);
-				expect(elementsArray.length).to.equal(48419);
+				expect(nodesArray.length).to.equal(15573);
+				expect(elementsArray.length).to.equal(16753);
 				expect(elementsArray[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
-				expect(exteriorFacesArray.length).to.equal(14404);
-				expect(numExteriorNodes).to.equal(7202);
+				expect(exteriorFacesArray.length).to.equal(8746);
+				expect(numExteriorNodes).to.equal(4373);
 			});
 		});
 	});
@@ -75,12 +75,12 @@ describe('MshParser', () => {
 				numExteriorNodes,
 			} = mesh;
 			expect(nodesArray.constructor).to.equal(Float64Array);
-			expect(nodesArray.length).to.equal(36252);
-			expect(elementsArray.length).to.equal(48419);
+			expect(nodesArray.length).to.equal(15573);
+			expect(elementsArray.length).to.equal(16753);
 			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFacesArray.length).to.equal(14404);
-			expect(numExteriorNodes).to.equal(7202);
+			expect(exteriorFacesArray.length).to.equal(8746);
+			expect(numExteriorNodes).to.equal(4373);
 		});
 	});
 	describe('parseAsync', () => {
@@ -112,12 +112,12 @@ describe('MshParser', () => {
 				numExteriorNodes,
 			} = mesh;
 			expect(nodesArray.constructor).to.equal(Float64Array);
-			expect(nodesArray.length).to.equal(36252);
-			expect(elementsArray.length).to.equal(48419);
+			expect(nodesArray.length).to.equal(15573);
+			expect(elementsArray.length).to.equal(16753);
 			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFacesArray.length).to.equal(14404);
-			expect(numExteriorNodes).to.equal(7202);
+			expect(exteriorFacesArray.length).to.equal(8746);
+			expect(numExteriorNodes).to.equal(4373);
 		});
 	});
 	describe('helper functions', () => {
@@ -127,7 +127,7 @@ describe('MshParser', () => {
 				expect(MSHParser.calculateEdges(mesh).length).to.equal(85470);
 			});
 			parser.parse('./test/msh/wingnut.msh', (mesh) => {
-				expect(MSHParser.calculateEdges(mesh).length).to.equal(135410);
+				expect(MSHParser.calculateEdges(mesh).length).to.equal(52634);
 			});
 		});
 		it('calculates element volumes', () => {
