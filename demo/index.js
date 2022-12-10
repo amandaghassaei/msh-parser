@@ -371,11 +371,6 @@ pane.addInput(PARAMS, 'xOffset', {
 	wireframe.material.uniforms.u_xOffset.value = PARAMS.xOffset;
 	render();
 });
-pane.addButton({
-	title: 'Upload .msh (or Drop/Paste)',
-}).on('click', () => {
-	fileInput.click();
-});
 pane.addInput(PARAMS, 'url', {
 	label: 'File',
 	options: {
@@ -387,4 +382,14 @@ pane.addInput(PARAMS, 'url', {
 	},
 }).on('change', () => {
 	parser.parse(PARAMS.url, initThreeJSGeometry);
+});
+pane.addButton({
+	title: 'Upload .msh (or Drop/Paste)',
+}).on('click', () => {
+	fileInput.click();
+});
+pane.addButton({
+	title: 'View Code on Github',
+}).on('click', () => {
+	document.getElementById('githubLink').click();
 });

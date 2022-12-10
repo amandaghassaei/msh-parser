@@ -5,6 +5,6 @@ html, body, canvas {
 	padding: 0;
 }
 
-#file-input {
+#file-input, #githubLink {
 	display: none;
 }
