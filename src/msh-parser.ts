@@ -378,7 +378,7 @@ export class MSHParser {
 		const v2 = MSHParser._vecFromTo(d, b, nodesArray);
 		const v3 = MSHParser._vecFromTo(d, c, nodesArray);
 	  
-		// Calculate the volume of the tetrahedron using the formula.
+		// Calculate the volume of the tetrahedron using the formula:""
 		// (1/6) * |v1 . (v2 x v3)|
 		// https://en.wikipedia.org/wiki/Tetrahedron#Volume
 		return Math.abs(MSHParser._dotProduct(v1, MSHParser._crossProduct(v2, v3))) / 6;
