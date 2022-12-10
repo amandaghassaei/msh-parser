@@ -219,9 +219,7 @@ function initThreeJSGeometry(mshData) {
 	externalMesh.geometry.scale(scale, scale, scale);
 
 	// Update uniforms.
-	internalMesh.material.uniforms.u_xOffset.value = PARAMS.xOffset;
-	externalMesh.material.uniforms.u_xOffset.value = PARAMS.xOffset;
-	wireframe.material.uniforms.u_xOffset.value = PARAMS.xOffset;
+	updateXOffset(PARAMS.xOffset);
 	// Render.
 	render();
 }
@@ -265,12 +263,24 @@ controls.maxZoom = 100;
 controls.minZoom = 0.5;
 controls.addEventListener('change', render);
 
-// Define the animation loop function.
+// Render the scene.
 function render() {
-	// Render the scene.
 	renderer.render(scene, camera);
 }
 render();
+
+// // Uncomment below to make animation.
+// const max = 0.6;
+// let val = max;
+// let incr = 0.005;
+// function animate() {
+// 	window.requestAnimationFrame(animate);
+// 	updateXOffset(val);
+// 	val += incr;
+// 	if (val > max || val < -max) incr *= -1;
+// 	render();
+// }
+// animate();
 
 // File import.
 const fileInput = document.getElementById('file-input');
@@ -342,6 +352,12 @@ function fileInputOnChange(e) {
 }
 fileInput.onchange = fileInputOnChange;
 
+function updateXOffset(value) {
+	if (internalMesh) internalMesh.material.uniforms.u_xOffset.value = value;
+	if (externalMesh) externalMesh.material.uniforms.u_xOffset.value = value;
+	if (wireframe) wireframe.material.uniforms.u_xOffset.value = value;
+}
+
 
 // UI
 const pane = new Tweakpane.Pane({
@@ -370,9 +386,7 @@ pane.addInput(PARAMS, 'xOffset', {
     step: 0.01,
 	label: 'Section Plane',
 }).on('change', () => {
-	internalMesh.material.uniforms.u_xOffset.value = PARAMS.xOffset;
-	externalMesh.material.uniforms.u_xOffset.value = PARAMS.xOffset;
-	wireframe.material.uniforms.u_xOffset.value = PARAMS.xOffset;
+	updateXOffset(PARAMS.xOffset);
 	render();
 });
 pane.addInput(PARAMS, 'url', {
