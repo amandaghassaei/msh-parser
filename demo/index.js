@@ -38,8 +38,6 @@ function makeTriHash(a, b, c) {
 
 const shaderMaterial = new THREE.ShaderMaterial({
 	side: THREE.DoubleSide,
-	// Polygon offset will have no effect on wireframe.
-	// (we are using this same material for both meshes and wireframe.)
 	polygonOffset: true,
 	polygonOffsetFactor: 1,
 	polygonOffsetUnits: 1,
@@ -87,7 +85,43 @@ const shaderMaterial = new THREE.ShaderMaterial({
 			fragColor = vec4(u_color * diffuse, 1.0);
 		}
 	`,
-} );
+});
+
+const shaderMaterialWireframe = new THREE.ShaderMaterial({
+	uniforms: {
+		u_color: { value: [1.0, 0, 0] },
+		u_xOffset: { value: PARAMS.xOffset },
+	},
+	extensions: {
+		derivatives: true,
+	},
+	glslVersion: THREE.GLSL3,
+
+	vertexShader: `
+		uniform float u_xOffset;
+		out float v_visible;
+		void main() {
+			vec4 mvPosition = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			gl_Position = mvPosition;
+			v_visible = position.x > u_xOffset? 0.0 : 1.0;
+		}
+	`,
+
+	fragmentShader: `
+		uniform vec3 u_color;
+		in float v_visible;
+		out vec4 fragColor;
+		void main() {
+			// If any vertex in this segment is not visible.
+			// Then don't render the segment.
+			if (v_visible != 1.0) {
+				discard;
+				return;
+			}
+			fragColor = vec4(u_color, 1.0);
+		}
+	`,
+});
 
 function removeThreeObject(object) {
 	scene.remove(object);
@@ -180,7 +214,7 @@ function initWireframe(positionsAttribute, mshData) {
 	const geometry = new THREE.BufferGeometry();
 	geometry.setIndex(new THREE.BufferAttribute(MSHParser.calculateEdges(mshData), 1));
 	geometry.setAttribute('position', positionsAttribute);
-	const material = shaderMaterial.clone();
+	const material = shaderMaterialWireframe.clone();
 	material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
 	const lines = new THREE.LineSegments(geometry, material);
 	scene.add(lines);
