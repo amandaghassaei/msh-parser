@@ -107,7 +107,7 @@ msh-parser also contains helper functions for analyzing the mesh data:
 
 ## Acknowledgements
 
-- This is a TypeScript port of the .msh parser from [PyMesh](https://github.com/PyMesh/PyMesh) by Qingnan Zhou
+- This is a TypeScript port of the .msh parser from [PyMesh](https://github.com/PyMesh/PyMesh) by [Qingnan Zhou](https://research.adobe.com/person/qingnan-zhou/)
 - Some code snippet contributions by [ChatGPT](https://chat.openai.com/chat)
 
 
