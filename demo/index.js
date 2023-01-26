@@ -441,7 +441,7 @@ pane.addButton({
 	fileInput.click();
 });
 pane.addButton({
-	title: 'View Code on Github',
+	title: 'View Code on GitHub',
 }).on('click', () => {
 	document.getElementById('githubLink').click();
 });
