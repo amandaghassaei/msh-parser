@@ -371,6 +371,36 @@ export class MSHParser {
 		return edgesArray;
 	}
 
+	static calculateExteriorEdges(mesh: MSHData) {
+		const { isTetMesh } = mesh;
+		const exteriorFacesArray = mesh.exteriorFacesArray!; 
+		if (!isTetMesh) throw new Error(`MSHParser.calculateExteriorEdges() is not defined for non-tet meshes.`);
+		// Calc all exterior edges in mesh, use hash table to cover each edge only once.
+		const hash: { [key: string]: boolean } = {};
+		for (let i = 0, numFaces = exteriorFacesArray.length; i < numFaces; i++) {
+			const faceIndices = exteriorFacesArray[i];
+			// For triangles, create an edge between each pair of indices in face.
+			const numNodes = faceIndices.length;
+			for (let j = 0; j < numNodes; j++) {
+				for (let k = j + 1; k < numNodes; k++) {
+					if (j === k) continue;
+					const a = faceIndices[j];
+					const b = faceIndices[k];
+					const key = `${Math.min(a, b)},${Math.max(a, b)}`;
+					hash[key] = true;
+				}
+			}
+		}
+		const keys = Object.keys(hash);
+		const edgesArray = new Uint32Array(keys.length * 2);
+		for (let i = 0, length = keys.length; i < length; i++) {
+			const indices = keys[i].split(',');
+			edgesArray[2 * i] = parseInt(indices[0]);
+			edgesArray[2 * i + 1] = parseInt(indices[1]);
+		}
+		return edgesArray;
+	}
+
 	private static _tetrahedronVolume(indices: number[], nodesArray: Float32Array | Float64Array) {
 		const [a, b, c, d] = indices;
 		// Calculate the vectors representing the edges of the tetrahedron.
@@ -393,5 +423,22 @@ export class MSHParser {
 			volumes[i] = MSHParser._tetrahedronVolume(elementsArray[i], nodesArray);
 		}
 		return volumes;
+	}
+
+	static calculateNodalVolumes(mesh: MSHData) {
+		const { elementsArray, nodesArray, isTetMesh } = mesh;
+		if (!isTetMesh) throw new Error(`MSHParser.calculateNodalVolumes() is not defined for non-tet meshes.`);
+		const elementVolumes = MSHParser.calculateElementVolumes(mesh);
+		const nodalVolumes = new Float32Array(nodesArray.length / 3);
+		for (let i = 0, numElements = elementsArray.length; i < numElements; i++) {
+			const nodeIndices = elementsArray[i];
+			const numNodeIndices = nodeIndices.length;
+			for (let j = 0; j < numNodeIndices; j++) {
+				const nodeIndex = nodeIndices[j];
+				// Split element volume evenly across adjacent nodes.
+				nodalVolumes[nodeIndex] += elementVolumes[i] / numNodeIndices;
+			}
+		}
+		return nodalVolumes;
 	}
 }

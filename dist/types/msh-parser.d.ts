@@ -23,6 +23,8 @@ export declare class MSHParser {
     parseAsync(urlOrFile: string | File): Promise<MSHData>;
     parse(urlOrFile: string | File, callback: (mesh: MSHData) => void): void;
     static calculateEdges(mesh: MSHData): Uint32Array;
+    static calculateExteriorEdges(mesh: MSHData): Uint32Array;
     private static _tetrahedronVolume;
     static calculateElementVolumes(mesh: MSHData): Float32Array;
+    static calculateNodalVolumes(mesh: MSHData): Float32Array;
 }

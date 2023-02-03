@@ -19,8 +19,12 @@
   ],
   "scripts": {
     "build": "rollup --config",
-    "test": "mocha"
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'test/*.ts'"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "homepage": "https://apps.amandaghassaei.com/msh-parser/demo/",
   "repository": {
     "type": "git",
@@ -33,10 +37,15 @@
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^10.0.1",
+    "@types/chai": "^4.3.4",
+    "@types/chai-almost": "^1.0.1",
+    "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.11",
     "chai": "^4.3.7",
+    "chai-almost": "^1.0.1",
     "mocha": "^10.1.0",
     "rollup": "^3.6.0",
+    "ts-node": "^10.9.1",
     "tslib": "^2.4.1",
     "typescript": "^4.9.3"
   }

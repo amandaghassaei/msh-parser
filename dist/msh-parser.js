@@ -357,6 +357,37 @@
             }
             return edgesArray;
         };
+        MSHParser.calculateExteriorEdges = function (mesh) {
+            var isTetMesh = mesh.isTetMesh;
+            var exteriorFacesArray = mesh.exteriorFacesArray;
+            if (!isTetMesh)
+                throw new Error("MSHParser.calculateExteriorEdges() is not defined for non-tet meshes.");
+            // Calc all exterior edges in mesh, use hash table to cover each edge only once.
+            var hash = {};
+            for (var i = 0, numFaces = exteriorFacesArray.length; i < numFaces; i++) {
+                var faceIndices = exteriorFacesArray[i];
+                // For triangles, create an edge between each pair of indices in face.
+                var numNodes = faceIndices.length;
+                for (var j = 0; j < numNodes; j++) {
+                    for (var k = j + 1; k < numNodes; k++) {
+                        if (j === k)
+                            continue;
+                        var a = faceIndices[j];
+                        var b = faceIndices[k];
+                        var key = "".concat(Math.min(a, b), ",").concat(Math.max(a, b));
+                        hash[key] = true;
+                    }
+                }
+            }
+            var keys = Object.keys(hash);
+            var edgesArray = new Uint32Array(keys.length * 2);
+            for (var i = 0, length_2 = keys.length; i < length_2; i++) {
+                var indices = keys[i].split(',');
+                edgesArray[2 * i] = parseInt(indices[0]);
+                edgesArray[2 * i + 1] = parseInt(indices[1]);
+            }
+            return edgesArray;
+        };
         MSHParser._tetrahedronVolume = function (indices, nodesArray) {
             var a = indices[0], b = indices[1], c = indices[2], d = indices[3];
             // Calculate the vectors representing the edges of the tetrahedron.
@@ -378,6 +409,23 @@
                 volumes[i] = MSHParser._tetrahedronVolume(elementsArray[i], nodesArray);
             }
             return volumes;
+        };
+        MSHParser.calculateNodalVolumes = function (mesh) {
+            var elementsArray = mesh.elementsArray, nodesArray = mesh.nodesArray, isTetMesh = mesh.isTetMesh;
+            if (!isTetMesh)
+                throw new Error("MSHParser.calculateNodalVolumes() is not defined for non-tet meshes.");
+            var elementVolumes = MSHParser.calculateElementVolumes(mesh);
+            var nodalVolumes = new Float32Array(nodesArray.length / 3);
+            for (var i = 0, numElements = elementsArray.length; i < numElements; i++) {
+                var nodeIndices = elementsArray[i];
+                var numNodeIndices = nodeIndices.length;
+                for (var j = 0; j < numNodeIndices; j++) {
+                    var nodeIndex = nodeIndices[j];
+                    // Split element volume evenly across adjacent nodes.
+                    nodalVolumes[nodeIndex] += elementVolumes[i] / numNodeIndices;
+                }
+            }
+            return nodalVolumes;
         };
         // TextDecoder instance to decode the header as UTF-8.
         MSHParser.decoder = new TextDecoder();
