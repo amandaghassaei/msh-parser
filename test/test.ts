@@ -26,6 +26,11 @@ describe('MshParser', () => {
 				expect(elementsArray[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
 				expect(exteriorFacesArray!.length).to.equal(14024);
+				for (let i = 0; i < exteriorFacesArray!.length; i++) {
+					for (let j = 0; j < exteriorFacesArray![i].length; j++) {
+						expect(exteriorFacesArray![i][j]).to.be.lessThan(numExteriorNodes!);
+					}
+				}
 				expect(numExteriorNodes).to.equal(7014);
 			});
 		});
@@ -44,6 +49,11 @@ describe('MshParser', () => {
 				expect(elementsArray[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
 				expect(exteriorFacesArray!.length).to.equal(8746);
+				for (let i = 0; i < exteriorFacesArray!.length; i++) {
+					for (let j = 0; j < exteriorFacesArray![i].length; j++) {
+						expect(exteriorFacesArray![i][j]).to.be.lessThan(numExteriorNodes!);
+					}
+				}
 				expect(numExteriorNodes).to.equal(4373);
 			});
 		});
@@ -65,6 +75,11 @@ describe('MshParser', () => {
 			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray!.length).to.equal(14024);
+			for (let i = 0; i < exteriorFacesArray!.length; i++) {
+				for (let j = 0; j < exteriorFacesArray![i].length; j++) {
+					expect(exteriorFacesArray![i][j]).to.be.lessThan(numExteriorNodes!);
+				}
+			}
 			expect(numExteriorNodes).to.equal(7014);
 		});
 		it('parses wingnut.msh', () => {
@@ -82,6 +97,11 @@ describe('MshParser', () => {
 			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray!.length).to.equal(8746);
+			for (let i = 0; i < exteriorFacesArray!.length; i++) {
+				for (let j = 0; j < exteriorFacesArray![i].length; j++) {
+					expect(exteriorFacesArray![i][j]).to.be.lessThan(numExteriorNodes!);
+				}
+			}
 			expect(numExteriorNodes).to.equal(4373);
 		});
 	});
@@ -102,6 +122,11 @@ describe('MshParser', () => {
 			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray!.length).to.equal(14024);
+			for (let i = 0; i < exteriorFacesArray!.length; i++) {
+				for (let j = 0; j < exteriorFacesArray![i].length; j++) {
+					expect(exteriorFacesArray![i][j]).to.be.lessThan(numExteriorNodes!);
+				}
+			}
 			expect(numExteriorNodes).to.equal(7014);
 		});
 		it('parses wingnut.msh', async () => {
@@ -119,6 +144,11 @@ describe('MshParser', () => {
 			expect(elementsArray[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
 			expect(exteriorFacesArray!.length).to.equal(8746);
+			for (let i = 0; i < exteriorFacesArray!.length; i++) {
+				for (let j = 0; j < exteriorFacesArray![i].length; j++) {
+					expect(exteriorFacesArray![i][j]).to.be.lessThan(numExteriorNodes!);
+				}
+			}
 			expect(numExteriorNodes).to.equal(4373);
 		});
 	});
@@ -138,10 +168,20 @@ describe('MshParser', () => {
 		});
 		it('calculates exterior edges', () => {
 			parser.parse('./test/msh/stanford_bunny.msh', (mesh) => {
-				expect(MSHParser.calculateExteriorEdges(mesh).length).to.equal(42072);
+				const { numExteriorNodes } = mesh;
+				const exteriorEdges = MSHParser.calculateExteriorEdges(mesh);
+				expect(exteriorEdges.length).to.equal(42072);
+				for (let i = 0; i < exteriorEdges.length; i++) {
+					expect(exteriorEdges[i]).to.be.lessThan(numExteriorNodes!);
+				}
 			});
 			parser.parse('./test/msh/wingnut.msh', (mesh) => {
-				expect(MSHParser.calculateExteriorEdges(mesh).length).to.equal(26238);
+				const { numExteriorNodes } = mesh;
+				const exteriorEdges = MSHParser.calculateExteriorEdges(mesh);
+				expect(exteriorEdges.length).to.equal(26238);
+				for (let i = 0; i < exteriorEdges.length; i++) {
+					expect(exteriorEdges[i]).to.be.lessThan(numExteriorNodes!);
+				}
 			});
 			// Should only work for tet meshes.
 			// @ts-ignore
