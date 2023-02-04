@@ -119,6 +119,7 @@ msh-parser also contains helper functions for analyzing the mesh data:
 
 This work is licensed under an [MIT License](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt).
 
+
 ## Development
 
 I don't have any plans to continue developing this package, but I'm happy to review pull requests if you would like to add a new feature.
