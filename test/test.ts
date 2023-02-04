@@ -241,5 +241,31 @@ describe('MshParser', () => {
 			assert.throws(() => { MSHParser.calculateNodalVolumes({}); },
 					'MSHParser.calculateNodalVolumes() is not defined for non-tet meshes.');
 		});
+		it('calculates bounding box', () => {
+			parser.parse('./test/msh/stanford_bunny.msh', (mesh) => {
+				const { min, max } = MSHParser.calculateBoundingBox(mesh);
+				expect(min).to.deep.equal([-43.133523557360256, -33.408036848762215, -0.0010786724840932279]);
+				expect(max).to.deep.equal([43.138475101021584, 33.3942439679999, 83.69444330381762]);
+			});
+			parser.parse('./test/msh/wingnut.msh', (mesh) => {
+				const { min, max } = MSHParser.calculateBoundingBox(mesh);
+				expect(min).to.deep.equal([-1.2498986197785313, -0.5488943641668116, -4.5772923088512436e-8]);
+				expect(max).to.deep.equal([1.2498814910148646, 0.5488943641071283, 1.2499371421138041]);
+			});
+		});
+		it('scales the node positions to unit bounding box', () => {
+			parser.parse('./test/msh/stanford_bunny.msh', (mesh) => {
+				mesh.nodesArray = MSHParser.scaleNodesArrayToUnitBoundingBox(mesh);
+				const { min, max } = MSHParser.calculateBoundingBox(mesh);
+				expect(min).to.deep.equal([-0.5, -0.3871608508879252, -0.485067711875539]);
+				expect(max).to.deep.equal([0.5, 0.3871608508879252, 0.4850677118755391]);
+			});
+			parser.parse('./test/msh/wingnut.msh', (mesh) => {
+				mesh.nodesArray = MSHParser.scaleNodesArrayToUnitBoundingBox(mesh);
+				const { min, max } = MSHParser.calculateBoundingBox(mesh);
+				expect(min).to.deep.equal([-0.5, -0.21957705870487879, -0.25000942732719283]);
+				expect(max).to.deep.equal([0.5, 0.21957705870487879, 0.25000942732719283]);
+			});
+		});
 	});
 });

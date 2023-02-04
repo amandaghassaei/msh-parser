@@ -427,6 +427,43 @@
             }
             return nodalVolumes;
         };
+        MSHParser.calculateBoundingBox = function (mesh) {
+            var nodesArray = mesh.nodesArray;
+            var numNodes = nodesArray.length / 3;
+            var min = [Infinity, Infinity, Infinity];
+            var max = [-Infinity, -Infinity, -Infinity];
+            for (var i = 0; i < numNodes; i++) {
+                min[0] = Math.min(min[0], nodesArray[3 * i]);
+                min[1] = Math.min(min[1], nodesArray[3 * i + 1]);
+                min[2] = Math.min(min[2], nodesArray[3 * i + 2]);
+                max[0] = Math.max(max[0], nodesArray[3 * i]);
+                max[1] = Math.max(max[1], nodesArray[3 * i + 1]);
+                max[2] = Math.max(max[2], nodesArray[3 * i + 2]);
+            }
+            return {
+                min: min,
+                max: max,
+            };
+        };
+        /**
+         * Scales nodes to unit bounding box and centers around origin.
+         */
+        MSHParser.scaleNodesArrayToUnitBoundingBox = function (mesh) {
+            var nodesArray = mesh.nodesArray;
+            var _a = MSHParser.calculateBoundingBox(mesh), min = _a.min, max = _a.max;
+            var diff = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
+            var center = [(max[0] + min[0]) / 2, (max[1] + min[1]) / 2, (max[2] + min[2]) / 2];
+            var scale = Math.max(diff[0], diff[1], diff[2]);
+            var scaledNodesArray = nodesArray.slice();
+            var numNodes = nodesArray.length / 3;
+            for (var i = 0; i < numNodes; i++) {
+                for (var j = 0; j < 3; j++) {
+                    // Uniform scale.
+                    scaledNodesArray[3 * i + j] = (nodesArray[3 * i + j] - center[j]) / scale;
+                }
+            }
+            return scaledNodesArray;
+        };
         // TextDecoder instance to decode the header as UTF-8.
         MSHParser.decoder = new TextDecoder();
         return MSHParser;

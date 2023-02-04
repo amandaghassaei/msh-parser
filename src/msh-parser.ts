@@ -441,4 +441,42 @@ export class MSHParser {
 		}
 		return nodalVolumes;
 	}
+
+	static calculateBoundingBox(mesh: MSHData) {
+		const { nodesArray } = mesh;
+		const numNodes = nodesArray.length / 3;
+		const min = [Infinity, Infinity, Infinity];
+		const max = [-Infinity, -Infinity, -Infinity];
+		for (let i = 0; i < numNodes; i++) {
+			min[0] = Math.min(min[0], nodesArray[3 * i]);
+			min[1] = Math.min(min[1], nodesArray[3 * i + 1]);
+			min[2] = Math.min(min[2], nodesArray[3 * i + 2]);
+			max[0] = Math.max(max[0], nodesArray[3 * i]);
+			max[1] = Math.max(max[1], nodesArray[3 * i + 1]);
+			max[2] = Math.max(max[2], nodesArray[3 * i + 2]);
+		}
+		return {
+			min, max,
+		};
+	}
+
+	/**
+	 * Scales nodes to unit bounding box and centers around origin.
+	 */
+	static scaleNodesArrayToUnitBoundingBox(mesh: MSHData) {
+		const { nodesArray } = mesh;
+		const { min, max } = MSHParser.calculateBoundingBox(mesh);
+		const diff = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
+		const center = [(max[0] + min[0]) / 2, (max[1] + min[1]) / 2, (max[2] + min[2]) / 2];
+		const scale = Math.max(diff[0], diff[1], diff[2]);
+		const scaledNodesArray = nodesArray.slice();
+		const numNodes = nodesArray.length / 3;
+		for (let i = 0; i < numNodes; i++) {
+			for (let j = 0; j < 3; j++) {
+				// Uniform scale.
+				scaledNodesArray[3 * i + j] = (nodesArray[3 * i + j] - center[j]) / scale;
+			}
+		}
+		return scaledNodesArray;
+	}
 }

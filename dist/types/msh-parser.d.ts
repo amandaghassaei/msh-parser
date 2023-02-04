@@ -27,4 +27,12 @@ export declare class MSHParser {
     private static _tetrahedronVolume;
     static calculateElementVolumes(mesh: MSHData): Float32Array;
     static calculateNodalVolumes(mesh: MSHData): Float32Array;
+    static calculateBoundingBox(mesh: MSHData): {
+        min: number[];
+        max: number[];
+    };
+    /**
+     * Scales nodes to unit bounding box and centers around origin.
+     */
+    static scaleNodesArrayToUnitBoundingBox(mesh: MSHData): Float64Array | Float32Array;
 }
