@@ -235,6 +235,11 @@ function initThreeJSGeometry(mshData) {
 		return;
 	}
 
+	setInfo(`${(nodesArray.length / 3).toLocaleString()} nodes<br/>
+		${numExteriorNodes.toLocaleString()} exterior nodes<br/>
+		${elementsArray.length.toLocaleString()} elements<br/>
+		${exteriorFacesArray.length.toLocaleString()} exterior faces`);
+
 	// Share positions attribute between meshes.
 	const positions = nodesArray.constructor === Float32Array ? nodesArray : new Float32Array(nodesArray);
 	const positionsAttribute = new THREE.BufferAttribute(positions, 3);
@@ -316,26 +321,82 @@ render();
 // }
 // animate();
 
+// UI
+const pane = new Tweakpane.Pane({
+	title: PARAMS.url.split('/').pop(),
+});
+pane.registerPlugin(TweakpaneInfodumpPlugin);
+const info = pane.addBlade({
+	view: "infodump",
+	content: "",
+	border: false,
+	markdown: false,
+});
+function setInfo(html) {
+	info.controller_.view.element.children[0].innerHTML = html;
+}
+pane.addInput(PARAMS, 'color1', { label: 'Color 1' }).on('change', () => {
+	externalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color1).toArray();
+	render();
+});
+pane.addInput(PARAMS, 'color2', { label: 'Color 2' }).on('change', () => {
+	internalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color2).toArray();
+	render();
+});
+pane.addInput(PARAMS, 'background', { label: 'Background' }).on('change', () => {
+	scene.background = new THREE.Color(PARAMS.background);
+	render();
+});
+pane.addInput(PARAMS, 'wireframe', { label: 'Wireframe' }).on('change', () => {
+	wireframe.material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
+	render();
+});
+
+pane.addInput(PARAMS, 'xOffset', {
+    min: -1,
+    max: 1,
+    step: 0.01,
+	label: 'Section Plane',
+}).on('change', () => {
+	updateXOffset(PARAMS.xOffset);
+	render();
+});
+pane.addInput(PARAMS, 'url', {
+	label: 'File',
+	options: {
+	  Bunny: BUNNY_URL,
+	  Wingnut: WINGNUT_URL,
+	  Duck: DUCK_URL,
+	  Couch: COUCH_URL,
+	  Knight: KNIGHT_URL,
+	},
+}).on('change', () => {
+	pane.title = PARAMS.url.split('/').pop();
+	parser.parse(PARAMS.url, initThreeJSGeometry);
+});
+pane.addButton({
+	title: 'Upload .msh (or Drop/Paste)',
+}).on('click', () => {
+	fileInput.click();
+});
+pane.addButton({
+	title: 'View Code on GitHub',
+}).on('click', () => {
+	document.getElementById('githubLink').click();
+});
+
 // File import.
 const fileInput = document.getElementById('file-input');
-const reader = new FileReader();
 
 function getExtension(filename) {
 	const components = filename.split('.');
 	return components[components.length - 1].toLowerCase();
 }
 
-function getFilename(filename) {
-	if (!filename) return '';
-	const components = filename.split('.');
-	components.pop();
-	return components.join('.');
-}
-
 function loadFile(file) {
 	const extension = getExtension(file.name);
 	if (extension !== 'msh' && extension !== 'mesh') return;
-	// const filename = getFilename(file.name);
+	pane.title = file.name;
 	parser.parse(file, initThreeJSGeometry);
 	return true;
 }
@@ -391,57 +452,3 @@ function updateXOffset(value) {
 	if (externalMesh) externalMesh.material.uniforms.u_xOffset.value = value;
 	if (wireframe) wireframe.material.uniforms.u_xOffset.value = value;
 }
-
-
-// UI
-const pane = new Tweakpane.Pane({
-	title: '',
-});
-pane.addInput(PARAMS, 'color1', { label: 'Color 1' }).on('change', () => {
-	externalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color1).toArray();
-	render();
-});
-pane.addInput(PARAMS, 'color2', { label: 'Color 2' }).on('change', () => {
-	internalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color2).toArray();
-	render();
-});
-pane.addInput(PARAMS, 'background', { label: 'Background' }).on('change', () => {
-	scene.background = new THREE.Color(PARAMS.background);
-	render();
-});
-pane.addInput(PARAMS, 'wireframe', { label: 'Wireframe' }).on('change', () => {
-	wireframe.material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
-	render();
-});
-
-pane.addInput(PARAMS, 'xOffset', {
-    min: -1,
-    max: 1,
-    step: 0.01,
-	label: 'Section Plane',
-}).on('change', () => {
-	updateXOffset(PARAMS.xOffset);
-	render();
-});
-pane.addInput(PARAMS, 'url', {
-	label: 'File',
-	options: {
-	  Bunny: BUNNY_URL,
-	  Wingnut: WINGNUT_URL,
-	  Duck: DUCK_URL,
-	  Couch: COUCH_URL,
-	  Knight: KNIGHT_URL,
-	},
-}).on('change', () => {
-	parser.parse(PARAMS.url, initThreeJSGeometry);
-});
-pane.addButton({
-	title: 'Upload .msh (or Drop/Paste)',
-}).on('click', () => {
-	fileInput.click();
-});
-pane.addButton({
-	title: 'View Code on GitHub',
-}).on('click', () => {
-	document.getElementById('githubLink').click();
-});
