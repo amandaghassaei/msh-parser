@@ -340,7 +340,7 @@ function initThreeJSGeometry(mshData) {
 	// Update ui.
 	PARAMS.highlightedVertex = -1;
 	vertexHighlighter.visible = false;
-	highlightedVertexSlider = makeHighlightedVertexSlider(nodesArray.length / 3);
+	highlightedVertexSlider = makeHighlightedVertexSlider(nodesArray.length / 3 - 1);
 
 	// Render.
 	render();
