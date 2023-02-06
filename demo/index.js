@@ -14,6 +14,7 @@ const PARAMS = {
 	background: '#eeeeee',
 	wireframe: '#000000',
 	xOffset: 0.25,
+	highlightedVertex: -1,
 	url: BUNNY_URL,
 };
 
@@ -23,6 +24,85 @@ const parser = new MSHParser();
 parser.parse(PARAMS.url, initThreeJSGeometry);
 
 let internalMesh, externalMesh, wireframe;
+
+// UI
+const pane = new Tweakpane.Pane({
+	title: PARAMS.url.split('/').pop(),
+});
+pane.registerPlugin(TweakpaneInfodumpPlugin);
+const info = pane.addBlade({
+	view: "infodump",
+	content: "",
+	border: false,
+	markdown: false,
+});
+function setInfo(html) {
+	info.controller_.view.element.children[0].innerHTML = html;
+}
+pane.addInput(PARAMS, 'color1', { label: 'Color 1' }).on('change', () => {
+	externalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color1).toArray();
+	render();
+});
+pane.addInput(PARAMS, 'color2', { label: 'Color 2' }).on('change', () => {
+	internalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color2).toArray();
+	render();
+});
+pane.addInput(PARAMS, 'background', { label: 'Background' }).on('change', () => {
+	scene.background = new THREE.Color(PARAMS.background);
+	render();
+});
+pane.addInput(PARAMS, 'wireframe', { label: 'Wireframe' }).on('change', () => {
+	wireframe.material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
+	render();
+});
+
+pane.addInput(PARAMS, 'xOffset', {
+    min: -1,
+    max: 1,
+    step: 0.01,
+	label: 'Section Plane',
+}).on('change', () => {
+	updateXOffset(PARAMS.xOffset);
+	render();
+});
+pane.addInput(PARAMS, 'url', {
+	label: 'File',
+	options: {
+	  Bunny: BUNNY_URL,
+	  Wingnut: WINGNUT_URL,
+	  Duck: DUCK_URL,
+	  Couch: COUCH_URL,
+	  Knight: KNIGHT_URL,
+	},
+}).on('change', () => {
+	pane.title = PARAMS.url.split('/').pop();
+	parser.parse(PARAMS.url, initThreeJSGeometry);
+});
+pane.addButton({
+	title: 'Upload .msh (or Drop/Paste)',
+}).on('click', () => {
+	fileInput.click();
+});
+pane.addButton({
+	title: 'View Code on GitHub',
+}).on('click', () => {
+	document.getElementById('githubLink').click();
+});
+let highlightedVertexSlider;
+function makeHighlightedVertexSlider(max) {
+	if (highlightedVertexSlider) pane.remove(highlightedVertexSlider);
+	return pane.addInput(PARAMS, 'highlightedVertex', { label: 'Highlighted Vertex', min: -1, max, step: 1 }).on('change', () => {
+		const index = PARAMS.highlightedVertex;
+		vertexHighlighter.visible = index >= 0;
+		if (index < 0 || !internalMesh) return;
+		const array = internalMesh.geometry.getAttribute('position').array;
+		vertexHighlighter.position.set(array[3 * index], array[3 * index + 1], array[3 * index + 2]);
+		render();
+	});
+}
+
+
+// Init threejs geometry.
 
 function makeTriHash(a, b, c) {
 	// Find the minimum and maximum of the input numbers.
@@ -257,8 +337,11 @@ function initThreeJSGeometry(mshData) {
 	const scale = 1 / externalMesh.geometry.boundingSphere.radius;
 	externalMesh.geometry.scale(scale, scale, scale);
 
-	// Update uniforms.
-	updateXOffset(PARAMS.xOffset);
+	// Update ui.
+	PARAMS.highlightedVertex = -1;
+	vertexHighlighter.visible = false;
+	highlightedVertexSlider = makeHighlightedVertexSlider(nodesArray.length / 3);
+
 	// Render.
 	render();
 }
@@ -277,6 +360,16 @@ const camera = new THREE.OrthographicCamera(
 );
 camera.position.set(2, 2, 2);
 scene.add(camera);
+
+// Init an object to highlight a vertex.
+const vertexHighlighter = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02), new THREE.MeshBasicMaterial({
+	depthTest: false,
+	depthWrite: false,
+	color: 0xff0000,
+}));
+vertexHighlighter.visible = false;
+vertexHighlighter.renderOrder = 1;
+scene.add(vertexHighlighter);
 
 // Update on resize.
 window.addEventListener('resize', () => {
@@ -300,7 +393,11 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.maxZoom = 100;
 controls.minZoom = 0.5;
-controls.addEventListener('change', render);
+controls.addEventListener('change', () => {
+	const scale = 1 / camera.zoom;
+	vertexHighlighter.scale.set(scale, scale, scale);
+	render();
+});
 
 // Render the scene.
 function render() {
@@ -321,69 +418,6 @@ render();
 // }
 // animate();
 
-// UI
-const pane = new Tweakpane.Pane({
-	title: PARAMS.url.split('/').pop(),
-});
-pane.registerPlugin(TweakpaneInfodumpPlugin);
-const info = pane.addBlade({
-	view: "infodump",
-	content: "",
-	border: false,
-	markdown: false,
-});
-function setInfo(html) {
-	info.controller_.view.element.children[0].innerHTML = html;
-}
-pane.addInput(PARAMS, 'color1', { label: 'Color 1' }).on('change', () => {
-	externalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color1).toArray();
-	render();
-});
-pane.addInput(PARAMS, 'color2', { label: 'Color 2' }).on('change', () => {
-	internalMesh.material.uniforms.u_color.value = new THREE.Color(PARAMS.color2).toArray();
-	render();
-});
-pane.addInput(PARAMS, 'background', { label: 'Background' }).on('change', () => {
-	scene.background = new THREE.Color(PARAMS.background);
-	render();
-});
-pane.addInput(PARAMS, 'wireframe', { label: 'Wireframe' }).on('change', () => {
-	wireframe.material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
-	render();
-});
-
-pane.addInput(PARAMS, 'xOffset', {
-    min: -1,
-    max: 1,
-    step: 0.01,
-	label: 'Section Plane',
-}).on('change', () => {
-	updateXOffset(PARAMS.xOffset);
-	render();
-});
-pane.addInput(PARAMS, 'url', {
-	label: 'File',
-	options: {
-	  Bunny: BUNNY_URL,
-	  Wingnut: WINGNUT_URL,
-	  Duck: DUCK_URL,
-	  Couch: COUCH_URL,
-	  Knight: KNIGHT_URL,
-	},
-}).on('change', () => {
-	pane.title = PARAMS.url.split('/').pop();
-	parser.parse(PARAMS.url, initThreeJSGeometry);
-});
-pane.addButton({
-	title: 'Upload .msh (or Drop/Paste)',
-}).on('click', () => {
-	fileInput.click();
-});
-pane.addButton({
-	title: 'View Code on GitHub',
-}).on('click', () => {
-	document.getElementById('githubLink').click();
-});
 
 // File import.
 const fileInput = document.getElementById('file-input');
