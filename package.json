@@ -15,7 +15,8 @@
     "3d",
     "mesh",
     "FEM",
-    "gmsh"
+    "gmsh",
+	"typescript"
   ],
   "scripts": {
     "build": "rollup --config",
