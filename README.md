@@ -95,12 +95,12 @@ parser.parse('./bunny.msh', (mesh) => {
 
 msh-parser also contains helper functions for analyzing the mesh data:
 
-- `MSHParser.calculateEdges(mesh)` returns a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: [e01, e02, e11, e12, ...].  This function is only implemented for tet-meshes at the moment.
-- `MSHParser.calculateExteriorEdges(mesh)` returns a Uint32Array containing all pairs of exterior edges in the mesh.  Node indices are in the form: [e01, e02, e11, e12, ...].  This function is only implemented for tet-meshes at the moment.
+- `MSHParser.calculateEdges(mesh)` returns a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  This function is only implemented for tet-meshes at the moment.
+- `MSHParser.calculateExteriorEdges(mesh)` returns a Uint32Array containing all pairs of exterior edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  This function is only implemented for tet-meshes at the moment.
 - `MSHParser.calculateElementVolumes(mesh)` returns a Float32Array containing the volume of all elements in the mesh.  This function is only implemented for tet-meshes at the moment.
 - `MSHParser.calculateNodalVolumes(mesh)` returns a Float32Array containing the approximate volume of all nodes in the mesh.  This is calculated by evenly distributing element volume across adjacent nodes.  This function is only implemented for tet-meshes at the moment.
-- `MSHParser.calculateBoundingBox(mesh)` returns the min and max of the mesh's bounding box.  min and max are in the form: [x, y, z].
-- `MSHParser.scaleNodesArrayToUnitBoundingBox(mesh)` returns the a copy of the `nodesArray`, scaled to fit inside a unit box and centered around the origin.  Similarly to `nodesArray`, returned value is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
+- `MSHParser.calculateBoundingBox(mesh)` returns the min and max of the mesh's bounding box.  min and max are in the form: `[x, y, z]`.
+- `MSHParser.scaleNodesArrayToUnitBoundingBox(mesh)` returns the a copy of the `nodesArray`, with the positions scaled to fit inside a unit box and centered around the origin.
 
 
 ## Limitations

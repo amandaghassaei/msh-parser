@@ -5,9 +5,8 @@
 })(this, (function (exports) { 'use strict';
 
     // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
-    // Define the MSHParser class
+    // Define the MSHParser class.
     var MSHParser = /** @class */ (function () {
-        // Constructor function.
         function MSHParser() {
             // Header offset.
             this._offset = 0;
@@ -277,7 +276,7 @@
         };
         MSHParser.prototype.parseSync = function (url) {
             if (typeof window !== 'undefined') {
-                throw new Error('Cannot call parser.parseSync() from a browser.');
+                throw new Error('Cannot call MSHParser.parseSync() from a browser.');
             }
             // Load the file with fs.
             var fs = require('fs');

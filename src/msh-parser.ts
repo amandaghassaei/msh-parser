@@ -7,7 +7,7 @@ export type MSHData = {
 };
 
 // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
-// Define the MSHParser class
+// Define the MSHParser class.
 export class MSHParser {
 	// FileReader instance to load the msh file.
 	static reader?: FileReader;
@@ -15,10 +15,6 @@ export class MSHParser {
 	static decoder = new TextDecoder();
 	// Header offset.
 	_offset = 0;
-
-	// Constructor function.
-	constructor() {
-	}
 
 	private _parseNextLineAsUTF8(uint8Array: Uint8Array) {
 		// Find the first newline character in the uint8Array.
@@ -292,7 +288,7 @@ export class MSHParser {
 
 	parseSync(url: string) {
 		if (typeof window !== 'undefined') {
-			throw new Error('Cannot call parser.parseSync() from a browser.');
+			throw new Error('Cannot call MSHParser.parseSync() from a browser.');
 		}
 		// Load the file with fs.
 		const fs = require('fs');

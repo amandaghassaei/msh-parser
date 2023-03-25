@@ -7,7 +7,6 @@ const COUCH_URL = '../test/msh/couch.msh';
 const KNIGHT_URL = '../test/msh/knight.msh';
 
 const PARAMS = {
-	factor: 123,
 	title: 'hello',
 	color1: '#8bc0f0',
 	color2: '#36fff5',
@@ -18,12 +17,13 @@ const PARAMS = {
 	url: BUNNY_URL,
 };
 
+let internalMesh, externalMesh, wireframe;
+
 // Create a new parser instance,
 const parser = new MSHParser();
 // Parse the .msh file using the specified file path.
 parser.parse(PARAMS.url, initThreeJSGeometry);
 
-let internalMesh, externalMesh, wireframe;
 
 // UI
 const pane = new Tweakpane.Pane({
@@ -94,7 +94,10 @@ function makeHighlightedVertexSlider(max) {
 	return pane.addInput(PARAMS, 'highlightedVertex', { label: 'Highlighted Vertex', min: -1, max, step: 1 }).on('change', () => {
 		const index = PARAMS.highlightedVertex;
 		vertexHighlighter.visible = index >= 0;
-		if (index < 0 || !internalMesh) return;
+		if (index < 0 || !internalMesh) {
+			render();
+			return;
+		}
 		const array = internalMesh.geometry.getAttribute('position').array;
 		vertexHighlighter.position.set(array[3 * index], array[3 * index + 1], array[3 * index + 2]);
 		render();

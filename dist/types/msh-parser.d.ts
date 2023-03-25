@@ -9,7 +9,6 @@ export declare class MSHParser {
     static reader?: FileReader;
     static decoder: TextDecoder;
     _offset: number;
-    constructor();
     private _parseNextLineAsUTF8;
     private static _throwInvalidFormatError;
     private static _isFiniteNumber;
