@@ -13,7 +13,7 @@ Live demo: [apps.amandaghassaei.com/msh-parser/demo/](https://apps.amandaghassae
 
 ## .msh File Format
 
-The MSH file format is used for storing 3D finite element mesh information for simulation purposes.  This library does not generate .msh files, but it will allow you to parse them in a browser or nodejs environment.  You can generate tetrahedral .msh files from boundary meshes (.stl, .obj) using [TetWild](https://wildmeshing.github.io/tetwild/).  You can view .msh files with [Gmsh](https://gmsh.info/) or by dragging them into the [demo app](https://apps.amandaghassaei.com/msh-parser/demo/).  Example .msh files can be found in [test/msh/](https://github.com/amandaghassaei/msh-parser/tree/main/test/msh).
+The MSH file format is used for storing 3D finite element mesh information for simulation purposes.  This library does not generate or render .msh files, but it will allow you to parse them in a browser or nodejs environment.  You can generate tetrahedral .msh files from boundary meshes (.stl, .obj) using [TetWild](https://wildmeshing.github.io/tetwild/).  You can view .msh files with [Gmsh](https://gmsh.info/) or by dragging them into the [demo app](https://apps.amandaghassaei.com/msh-parser/demo/).  Example .msh files can be found in [test/msh/](https://github.com/amandaghassaei/msh-parser/tree/main/test/msh).
 
 
 ## Installation
