@@ -16,7 +16,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHParser) =>
 			request.open('GET', urlOrFile, true);
 			request.responseType = 'arraybuffer';
 			request.onload = () => {
-				const mesh = new MSHParser(request.response as ArrayBuffer);
+				const mesh = new _MSHParser(request.response as ArrayBuffer);
 				// Call the callback function with the parsed mesh data.
 				callback(mesh);
 			};
@@ -25,7 +25,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHParser) =>
 			// Call the callback function with the parsed mesh data.
 			import('fs').then((fs) => {
 				const buffer = fs.readFileSync(urlOrFile);
-				callback(new MSHParser(new Uint8Array(buffer).buffer));
+				callback(new _MSHParser(new Uint8Array(buffer).buffer));
 			});
 		}
 	} else {
@@ -33,7 +33,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHParser) =>
 		// Load the file with FileReader.
 		const reader = new FileReader();
 		reader.onload = () => {
-			const mesh = new MSHParser(reader.result as ArrayBuffer);
+			const mesh = new _MSHParser(reader.result as ArrayBuffer);
 			// Call the callback function with the parsed mesh data.
 			callback(mesh);
 		}
@@ -42,19 +42,17 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHParser) =>
 }
 
 export function parseMsh(data: Buffer | ArrayBuffer) {
-	if (typeof data !== 'string') {
-		data = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
-	}
-	return new MSHParser(data);
+	data = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
+	return new _MSHParser(data) as MSHParser;
 }
 
 // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
-// Define the MSHParser class.
-export class MSHParser {
+// Define the _MSHParser class.
+class _MSHParser {
 	// TextDecoder instance to decode the header as UTF-8.
 	static decoder = new TextDecoder();
 	// Header offset.
-	_offset = 0;
+	private _offset = 0;
 
 	private _nodes: Float64Array | Float32Array;
 	readonly elements: number[][];
@@ -64,8 +62,8 @@ export class MSHParser {
 	private _nodalVolumes?: Float32Array;
 	private _boundingBox?: { min: number[], max: number[] };
 	readonly isTetMesh: boolean;
-	readonly exteriorFaces?: number[][];
-	readonly numExteriorNodes?: number;
+	private readonly _exteriorFaces?: number[][];
+	private readonly _numExteriorNodes?: number;
 
 	constructor(arrayBuffer: ArrayBuffer) {
 		const dataView = new DataView(arrayBuffer);
@@ -73,10 +71,10 @@ export class MSHParser {
 		const uint8Array = new Uint8Array(dataView.buffer);
 
 		// Parse header.
-		if (this._parseNextLineAsUTF8(uint8Array) !== '$MeshFormat') MSHParser._throwInvalidFormatError();
+		if (this._parseNextLineAsUTF8(uint8Array) !== '$MeshFormat') _MSHParser._throwInvalidFormatError();
 		const [ version, type, dataSize ] = this._parseNextLineAsUTF8(uint8Array).split(' ').map(el => parseFloat(el));
-		if (isNaN(version) || isNaN(type) || isNaN(dataSize)) MSHParser._throwInvalidFormatError();
-		if (dataSize !== 8 && dataSize !== 4) throw new Error(`This library currently parses .msh files with data size === 8 or 4.  Current file has data size = ${dataSize}. Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.`);
+		if (isNaN(version) || isNaN(type) || isNaN(dataSize)) _MSHParser._throwInvalidFormatError();
+		if (dataSize !== 8 && dataSize !== 4) throw new Error(`msh-parser: This library currently parses .msh files with data size === 8 or 4.  Current file has data size = ${dataSize}. Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.`);
 		const doublePrecision = dataSize === 8;
 		const isBinary = type === 1;
 		let isLE = false;
@@ -89,10 +87,10 @@ export class MSHParser {
 			}
 			this._offset += 4;
 		}
-		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndMeshFormat') MSHParser._throwInvalidFormatError();
+		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndMeshFormat') _MSHParser._throwInvalidFormatError();
 
 		// Read the number of nodes.
-		if (this._parseNextLineAsUTF8(uint8Array) !== '$Nodes') MSHParser._throwInvalidFormatError();
+		if (this._parseNextLineAsUTF8(uint8Array) !== '$Nodes') _MSHParser._throwInvalidFormatError();
 		const numNodes = parseInt(this._parseNextLineAsUTF8(uint8Array));
 		// Loop through the nodes.
 		const nodesArray = doublePrecision ? new Float64Array(3 * numNodes) : new Float32Array(3 * numNodes);
@@ -113,16 +111,16 @@ export class MSHParser {
 				this._offset += 4 + 3 * dataSize;
 			}
 		} else {
-			throw new Error('This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
+			throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
 		}
 		// Check that all nodes are finite.
 		for (let i = 0; i < nodesArray.length; i++) {
-			if (!MSHParser._isFiniteNumber(nodesArray[i])) throw new Error('NaN or Inf detected in input file.');
+			if (!_MSHParser._isFiniteNumber(nodesArray[i])) throw new Error('msh-parser: NaN or Inf detected in input file.');
 		}
-		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndNodes') MSHParser._throwInvalidFormatError();
+		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndNodes') _MSHParser._throwInvalidFormatError();
 		this._nodes = nodesArray;
 
-		if (this._parseNextLineAsUTF8(uint8Array) !== '$Elements') MSHParser._throwInvalidFormatError();
+		if (this._parseNextLineAsUTF8(uint8Array) !== '$Elements') _MSHParser._throwInvalidFormatError();
 
 		// Read the number of elements.
 		const numElements = parseInt(this._parseNextLineAsUTF8(uint8Array));
@@ -144,18 +142,18 @@ export class MSHParser {
 				const elementNumElements = dataView.getInt32(this._offset + 4, isLE);
 				const elementNumTags = dataView.getInt32(this._offset + 8, isLE);
 				if (elementType !== 4) isTetMesh = false;
-				const numElementNodes = MSHParser._numNodesPerElementType(elementType);
+				const numElementNodes = _MSHParser._numNodesPerElementType(elementType);
 				// Update the current file's byte offset.
 				this._offset += 12;
 				for (let i = 0; i < elementNumElements; i++) {
 					const index = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
-					if (index < 0 || index >= numElements) throw new Error(`Invalid element index ${index} for numElements === ${numElements}.`);
+					if (index < 0 || index >= numElements) throw new Error(`msh-parser: Invalid element index ${index} for numElements === ${numElements}.`);
 					this._offset += 4;
 					for (let j = 0; j < elementNumTags; j++) {
 						const tag = dataView.getInt32(this._offset, isLE);
 						if (!tagWarning) {
 							tagWarning = true;
-							console.warn('This library does not currently parse element tags.');
+							console.warn('msh-parser: This library does not currently parse element tags.');
 						}
 						// Update the current file's byte offset.
 						this._offset += 4;
@@ -164,8 +162,8 @@ export class MSHParser {
 					const nodeIndices = elementsArray[index];
 					for (let j = 0; j < numElementNodes; j++) {
 						const nodeIndex = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
-						if (!MSHParser._isFiniteNumber(nodeIndex)) throw new Error('NaN or Inf detected in input file.');
-						if (nodeIndex < 0 || nodeIndex >= numNodes) throw new Error(`Invalid node index ${nodeIndex} for numNodes === ${numNodes}.`);
+						if (!_MSHParser._isFiniteNumber(nodeIndex)) throw new Error('msh-parser: NaN or Inf detected in input file.');
+						if (nodeIndex < 0 || nodeIndex >= numNodes) throw new Error(`msh-parser: Invalid node index ${nodeIndex} for numNodes === ${numNodes}.`);
 						nodeIndices.push(nodeIndex);
 						// Update the current file's byte offset.
 						this._offset += 4;
@@ -175,9 +173,9 @@ export class MSHParser {
 				elementIndex += elementNumElements;
 			}
 		} else {
-			throw new Error('This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
+			throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
 		}
-		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements') MSHParser._throwInvalidFormatError();
+		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements') _MSHParser._throwInvalidFormatError();
 
 		this.isTetMesh = isTetMesh;
 		// TODO: make this work for non-tet.
@@ -188,11 +186,11 @@ export class MSHParser {
 			for (let i = 0; i < numElements; i++) {
 				const indices = elementsArray[i];
 				for (let j = 0; j < indices.length; j++) {
-					const key = MSHParser._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
+					const key = _MSHParser._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
 					if (hash[key]) {
 						hash[key].push(indices[(j + 3) % indices.length]);
 						if (hash[key].length > 2) {
-							throw new Error(`Hit face ${key} more than twice.`);
+							throw new Error(`msh-parser: Hit face ${key} more than twice.`);
 						}
 					} else {
 						hash[key] = [indices[(j + 3) % 4]];
@@ -212,10 +210,10 @@ export class MSHParser {
 				// d is the internal node of this tet.
 				const d = hash[key][0];
 				// Use d to calculate the winding order of the triangle.
-				const orientation = MSHParser._dotProduct(MSHParser._crossProduct(
-					MSHParser._vecFromTo(a, b, nodesArray),
-					MSHParser._vecFromTo(a, c, nodesArray),
-				), MSHParser._vecFromTo(a, d, nodesArray));
+				const orientation = _MSHParser._dotProduct(_MSHParser._crossProduct(
+					_MSHParser._vecFromTo(a, b, nodesArray),
+					_MSHParser._vecFromTo(a, c, nodesArray),
+				), _MSHParser._vecFromTo(a, d, nodesArray));
 				exteriorFacesArray.push(orientation < 0 ? [a, b, c] : [a, c, b]);
 				// Mark all nodes as exterior.
 				exteriorNodes[a] = 1;
@@ -232,7 +230,7 @@ export class MSHParser {
 					currentIndex++;
 				}
 			}
-			this.numExteriorNodes = currentIndex;
+			this._numExteriorNodes = currentIndex;
 			for (let i = 0; i < numNodes; i++) {
 				if (!exteriorNodes[i]) {
 					newIndices[i] = currentIndex;
@@ -259,7 +257,7 @@ export class MSHParser {
 					indices[j] = newIndices[indices[j]];
 				}
 			}
-			this.exteriorFaces = exteriorFacesArray;
+			this._exteriorFaces = exteriorFacesArray;
 		}
 	}
 
@@ -268,14 +266,14 @@ export class MSHParser {
 	}
 
 	set nodes(nodes: Float32Array | Float64Array) {
-		throw new Error(`No nodes setter.`);
+		throw new Error(`msh-parser: No nodes setter.`);
 	}
 
 	private _parseNextLineAsUTF8(uint8Array: Uint8Array) {
 		// Find the first newline character in the uint8Array.
 		const newlineIndex = uint8Array.indexOf(10, this._offset); // 10 is the ASCII code for the newline character.
 		// Decode the uint8Array as a UTF-8 encoded string up until the newline character.
-		const text = MSHParser.decoder.decode(uint8Array.subarray(this._offset, newlineIndex));
+		const text = _MSHParser.decoder.decode(uint8Array.subarray(this._offset, newlineIndex));
 		// Update offset.
 		this._offset = newlineIndex + 1;
 		// Return the decoded string.
@@ -283,7 +281,7 @@ export class MSHParser {
 	}
 
 	private static _throwInvalidFormatError() {
-		throw new Error('Invalid .msh file format.');
+		throw new Error('msh-parser: Invalid .msh file format.');
 	}
 
 	private static _isFiniteNumber(number: number) {
@@ -301,7 +299,7 @@ export class MSHParser {
 			case 5:
 				return 8; // Hexahedron
 			default:
-				throw new Error(`Element type ${elementType} is not supported yet.`);
+				throw new Error(`msh-parser: Element type ${elementType} is not supported yet.`);
 		}
 	}
 	
@@ -342,7 +340,7 @@ export class MSHParser {
 	get edges() {
 		if (!this._edges) {
 			const { elements, isTetMesh } = this;
-			if (!isTetMesh) throw new Error(`MSHParser.edges is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser.edges is not defined for non-tet meshes.`);
 			// Calc all edges in mesh, use hash table to cover each edge only once.
 			const hash: { [key: string]: boolean } = {};
 			for (let i = 0, numElements = elements.length; i < numElements; i++) {
@@ -372,17 +370,17 @@ export class MSHParser {
 	}
 
 	set edges(edges: Uint32Array) {
-		throw new Error(`No edges setter.`);
+		throw new Error(`msh-parser: No edges setter.`);
 	}
 
 	get exteriorEdges() {
 		if (!this._exteriorEdges) {
-			const { isTetMesh, exteriorFaces } = this; 
-			if (!isTetMesh) throw new Error(`MSHParser.exteriorEdges is not defined for non-tet meshes.`);
+			const { isTetMesh, _exteriorFaces } = this; 
+			if (!isTetMesh) throw new Error(`msh-parser.exteriorEdges is not defined for non-tet meshes.`);
 			// Calc all exterior edges in mesh, use hash table to cover each edge only once.
 			const hash: { [key: string]: boolean } = {};
-			for (let i = 0, numFaces = exteriorFaces!.length; i < numFaces; i++) {
-				const faceIndices = exteriorFaces![i];
+			for (let i = 0, numFaces = _exteriorFaces!.length; i < numFaces; i++) {
+				const faceIndices = _exteriorFaces![i];
 				// For triangles, create an edge between each pair of indices in face.
 				const numNodes = faceIndices.length;
 				for (let j = 0; j < numNodes; j++) {
@@ -408,30 +406,39 @@ export class MSHParser {
 	}
 
 	set exteriorEdges(exteriorEdges: Uint32Array) {
-		throw new Error(`No exteriorEdges setter.`);
+		throw new Error(`msh-parser: No exteriorEdges setter.`);
+	}
+
+	get exteriorFaces() {
+		if (!this.isTetMesh || !this._exteriorFaces) throw new Error(`msh-parser.exteriorFaces is not defined for non-tet meshes.`);
+		return this._exteriorFaces;
+	}
+
+	set exteriorFaces(exteriorFaces: number[][]) {
+		throw new Error(`msh-parser: No exteriorFaces setter.`);
 	}
 
 	private static _tetrahedronVolume(indices: number[], nodesArray: Float32Array | Float64Array) {
 		const [a, b, c, d] = indices;
 		// Calculate the vectors representing the edges of the tetrahedron.
-		const v1 = MSHParser._vecFromTo(d, a, nodesArray);
-		const v2 = MSHParser._vecFromTo(d, b, nodesArray);
-		const v3 = MSHParser._vecFromTo(d, c, nodesArray);
+		const v1 = _MSHParser._vecFromTo(d, a, nodesArray);
+		const v2 = _MSHParser._vecFromTo(d, b, nodesArray);
+		const v3 = _MSHParser._vecFromTo(d, c, nodesArray);
 	  
 		// Calculate the volume of the tetrahedron using the formula:""
 		// (1/6) * |v1 . (v2 x v3)|
 		// https://en.wikipedia.org/wiki/Tetrahedron#Volume
-		return Math.abs(MSHParser._dotProduct(v1, MSHParser._crossProduct(v2, v3))) / 6;
+		return Math.abs(_MSHParser._dotProduct(v1, _MSHParser._crossProduct(v2, v3))) / 6;
 	}
 
 	get elementVolumes() {
 		if (!this._elementVolumes) {
 			const { elements, nodes, isTetMesh } = this;
-			if (!isTetMesh) throw new Error(`MSHParser.elementVolumes is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser.elementVolumes is not defined for non-tet meshes.`);
 			const numElements = elements.length;
 			const volumes = new Float32Array(numElements);
 			for (let i = 0; i < numElements; i++) {
-				volumes[i] = MSHParser._tetrahedronVolume(elements[i], nodes);
+				volumes[i] = _MSHParser._tetrahedronVolume(elements[i], nodes);
 			}
 			this._elementVolumes = volumes;
 		}
@@ -439,13 +446,13 @@ export class MSHParser {
 	}
 
 	set elementVolumes(elementVolumes: Float32Array) {
-		throw new Error(`No elementVolumes setter.`);
+		throw new Error(`msh-parser: No elementVolumes setter.`);
 	}
 
 	get nodalVolumes() {
 		if (!this._nodalVolumes) {
 			const { elements, nodes, isTetMesh } = this;
-			if (!isTetMesh) throw new Error(`MSHParser.nodalVolumes is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser.nodalVolumes is not defined for non-tet meshes.`);
 			const { elementVolumes } = this;
 			const nodalVolumes = new Float32Array(nodes.length / 3);
 			for (let i = 0, numElements = elements.length; i < numElements; i++) {
@@ -463,7 +470,16 @@ export class MSHParser {
 	}
 
 	set nodalVolumes(nodalVolumes: Float32Array) {
-		throw new Error(`No nodalVolumes setter.`);
+		throw new Error(`msh-parser: No nodalVolumes setter.`);
+	}
+
+	get numExteriorNodes() {
+		if (!this.isTetMesh || !this._numExteriorNodes) throw new Error(`msh-parser.numExteriorNodes is not defined for non-tet meshes.`);
+		return this._numExteriorNodes;
+	}
+
+	set numExteriorNodes(numExteriorNodes: number) {
+		throw new Error(`msh-parser: No numExteriorNodes setter.`);
 	}
 
 	get boundingBox() {
@@ -488,7 +504,7 @@ export class MSHParser {
 	}
 
 	set boundingBox(boundingBox: { min: number[], max: number[] }) {
-		throw new Error(`No boundingBox setter.`);
+		throw new Error(`msh-parser: No boundingBox setter.`);
 	}
 
 	/**
@@ -512,4 +528,19 @@ export class MSHParser {
 		delete this._elementVolumes;
 		return this;
 	}
+}
+
+// Export just the type, keep the class private.
+export type MSHParser = {
+	readonly nodes: Float64Array | Float32Array;
+	readonly elements: number[][];
+	readonly edges: Uint32Array;
+	readonly exteriorEdges: Uint32Array;
+	readonly exteriorFaces: number[][];
+	readonly elementVolumes: Float32Array;
+	readonly nodalVolumes: Float32Array;
+	readonly isTetMesh: boolean;
+	readonly numExteriorNodes: number;
+	readonly boundingBox: { min: number[], max: number[] };
+	scaleNodesToUnitBoundingBox: () => MSHParser;
 }

@@ -363,7 +363,7 @@ camera.position.set(2, 2, 2);
 scene.add(camera);
 
 // Init an object to highlight a vertex.
-const vertexHighlighter = new THREE.Mesh(new THREE.SphereBufferGeometry(0.02), new THREE.MeshBasicMaterial({
+const vertexHighlighter = new THREE.Mesh(new THREE.SphereGeometry(0.02), new THREE.MeshBasicMaterial({
 	depthTest: false,
 	depthWrite: false,
 	color: 0xff0000,
