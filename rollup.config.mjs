@@ -11,4 +11,5 @@ export default {
   plugins: [
     typescript(),
   ],
+  external: ['fs'],
 };

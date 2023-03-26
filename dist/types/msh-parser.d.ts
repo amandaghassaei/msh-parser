@@ -1,14 +1,23 @@
-export type MSHData = {
-    nodesArray: Float64Array | Float32Array;
-    elementsArray: number[][];
-    isTetMesh: boolean;
-    exteriorFacesArray?: number[][];
-    numExteriorNodes?: number;
-};
+/// <reference types="node" />
+export declare function loadMshAsync(urlOrFile: string | File): Promise<MSHParser>;
+export declare function loadMsh(urlOrFile: string | File, callback: (mesh: MSHParser) => void): void;
+export declare function parseMsh(data: Buffer | ArrayBuffer): MSHParser;
 export declare class MSHParser {
-    static reader?: FileReader;
     static decoder: TextDecoder;
     _offset: number;
+    private _nodes;
+    readonly elements: number[][];
+    private _edges?;
+    private _exteriorEdges?;
+    private _elementVolumes?;
+    private _nodalVolumes?;
+    private _boundingBox?;
+    readonly isTetMesh: boolean;
+    readonly exteriorFaces?: number[][];
+    readonly numExteriorNodes?: number;
+    constructor(arrayBuffer: ArrayBuffer);
+    get nodes(): Float32Array | Float64Array;
+    set nodes(nodes: Float32Array | Float64Array);
     private _parseNextLineAsUTF8;
     private static _throwInvalidFormatError;
     private static _isFiniteNumber;
@@ -17,21 +26,25 @@ export declare class MSHParser {
     private static _crossProduct;
     private static _vecFromTo;
     private static _makeTriHash;
-    private _parse;
-    parseSync(url: string): MSHData;
-    parseAsync(urlOrFile: string | File): Promise<MSHData>;
-    parse(urlOrFile: string | File, callback: (mesh: MSHData) => void): void;
-    static calculateEdges(mesh: MSHData): Uint32Array;
-    static calculateExteriorEdges(mesh: MSHData): Uint32Array;
+    get edges(): Uint32Array;
+    set edges(edges: Uint32Array);
+    get exteriorEdges(): Uint32Array;
+    set exteriorEdges(exteriorEdges: Uint32Array);
     private static _tetrahedronVolume;
-    static calculateElementVolumes(mesh: MSHData): Float32Array;
-    static calculateNodalVolumes(mesh: MSHData): Float32Array;
-    static calculateBoundingBox(mesh: MSHData): {
+    get elementVolumes(): Float32Array;
+    set elementVolumes(elementVolumes: Float32Array);
+    get nodalVolumes(): Float32Array;
+    set nodalVolumes(nodalVolumes: Float32Array);
+    get boundingBox(): {
         min: number[];
         max: number[];
     };
+    set boundingBox(boundingBox: {
+        min: number[];
+        max: number[];
+    });
     /**
      * Scales nodes to unit bounding box and centers around origin.
      */
-    static scaleNodesArrayToUnitBoundingBox(mesh: MSHData): Float64Array | Float32Array;
+    scaleNodesToUnitBoundingBox(): this;
 }

@@ -4,73 +4,61 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.MSHParserLib = {}));
 })(this, (function (exports) { 'use strict';
 
+    function loadMshAsync(urlOrFile) {
+        return new Promise(function (resolve) {
+            loadMsh(urlOrFile, function (mesh) {
+                resolve(mesh);
+            });
+        });
+    }
+    // Parse the .msh file at the specified file path of File object.
+    // Made this compatible with Node and the browser, maybe there is a better way?
+    function loadMsh(urlOrFile, callback) {
+        if (typeof urlOrFile === 'string') {
+            if (typeof window !== 'undefined') {
+                // Load the file with XMLHttpRequest.
+                var request_1 = new XMLHttpRequest();
+                request_1.open('GET', urlOrFile, true);
+                request_1.responseType = 'arraybuffer';
+                request_1.onload = function () {
+                    var mesh = new MSHParser(request_1.response);
+                    // Call the callback function with the parsed mesh data.
+                    callback(mesh);
+                };
+                request_1.send();
+            }
+            else {
+                // Call the callback function with the parsed mesh data.
+                import('fs').then(function (fs) {
+                    var buffer = fs.readFileSync(urlOrFile);
+                    callback(new MSHParser(new Uint8Array(buffer).buffer));
+                });
+            }
+        }
+        else {
+            // We only ever hit this in the browser.
+            // Load the file with FileReader.
+            var reader_1 = new FileReader();
+            reader_1.onload = function () {
+                var mesh = new MSHParser(reader_1.result);
+                // Call the callback function with the parsed mesh data.
+                callback(mesh);
+            };
+            reader_1.readAsArrayBuffer(urlOrFile);
+        }
+    }
+    function parseMsh(data) {
+        if (typeof data !== 'string') {
+            data = data.buffer ? new Uint8Array(data).buffer : data;
+        }
+        return new MSHParser(data);
+    }
     // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
     // Define the MSHParser class.
     var MSHParser = /** @class */ (function () {
-        function MSHParser() {
+        function MSHParser(arrayBuffer) {
             // Header offset.
             this._offset = 0;
-        }
-        MSHParser.prototype._parseNextLineAsUTF8 = function (uint8Array) {
-            // Find the first newline character in the uint8Array.
-            var newlineIndex = uint8Array.indexOf(10, this._offset); // 10 is the ASCII code for the newline character.
-            // Decode the uint8Array as a UTF-8 encoded string up until the newline character.
-            var text = MSHParser.decoder.decode(uint8Array.subarray(this._offset, newlineIndex));
-            // Update offset.
-            this._offset = newlineIndex + 1;
-            // Return the decoded string.
-            return text;
-        };
-        MSHParser._throwInvalidFormatError = function () {
-            throw new Error('Invalid .msh file format.');
-        };
-        MSHParser._isFiniteNumber = function (number) {
-            return !isNaN(number) && number !== Infinity && number !== -Infinity;
-        };
-        MSHParser._numNodesPerElementType = function (elementType) {
-            switch (elementType) {
-                case 2:
-                    return 3; // Triangle
-                case 3:
-                    return 4; // Quad
-                case 4:
-                    return 4; // Tetrahedron
-                case 5:
-                    return 8; // Hexahedron
-                default:
-                    throw new Error("Element type ".concat(elementType, " is not supported yet."));
-            }
-        };
-        // Calculates the dot product of two vectors.
-        MSHParser._dotProduct = function (vector1, vector2) {
-            return vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2];
-        };
-        // Calculates the cross product of two vectors.
-        MSHParser._crossProduct = function (vector1, vector2) {
-            return [
-                vector1[1] * vector2[2] - vector1[2] * vector2[1],
-                vector1[2] * vector2[0] - vector1[0] * vector2[2],
-                vector1[0] * vector2[1] - vector1[1] * vector2[0]
-            ];
-        };
-        MSHParser._vecFromTo = function (from, to, nodesArray) {
-            return [
-                nodesArray[3 * to] - nodesArray[3 * from],
-                nodesArray[3 * to + 1] - nodesArray[3 * from + 1],
-                nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
-            ];
-        };
-        MSHParser._makeTriHash = function (a, b, c) {
-            // Find the minimum and maximum of the input numbers.
-            var min = Math.min(a, b, c);
-            var max = Math.max(a, b, c);
-            // Find the remaining number.
-            var remaining = a + b + c - min - max;
-            // Join the numbers in ascending order into a string with commas.
-            return "".concat(min, ",").concat(remaining, ",").concat(max);
-        };
-        MSHParser.prototype._parse = function (arrayBuffer) {
-            this._offset = 0; // Reset header offset.
             var dataView = new DataView(arrayBuffer);
             // Create a Uint8Array that references the same underlying memory as the DataView.
             var uint8Array = new Uint8Array(dataView.buffer);
@@ -130,6 +118,7 @@
             }
             if (this._parseNextLineAsUTF8(uint8Array) !== '$EndNodes')
                 MSHParser._throwInvalidFormatError();
+            this._nodes = nodesArray;
             if (this._parseNextLineAsUTF8(uint8Array) !== '$Elements')
                 MSHParser._throwInvalidFormatError();
             // Read the number of elements.
@@ -138,6 +127,7 @@
             for (var i = 0; i < numElements; i++) {
                 elementsArray.push([]);
             }
+            this.elements = elementsArray;
             // Check if all elements are tetrahedra.
             var isTetMesh = true;
             // Loop through the elements.
@@ -188,11 +178,7 @@
             }
             if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements')
                 MSHParser._throwInvalidFormatError();
-            var mesh = {
-                nodesArray: nodesArray,
-                elementsArray: elementsArray,
-                isTetMesh: isTetMesh,
-            };
+            this.isTetMesh = isTetMesh;
             // TODO: make this work for non-tet.
             if (isTetMesh) {
                 // For tet meshes, calculate exterior faces.
@@ -243,7 +229,7 @@
                         currentIndex++;
                     }
                 }
-                mesh.numExteriorNodes = currentIndex;
+                this.numExteriorNodes = currentIndex;
                 for (var i = 0; i < numNodes; i++) {
                     if (!exteriorNodes[i]) {
                         newIndices[i] = currentIndex;
@@ -257,7 +243,7 @@
                         newNodesArray[3 * newIndices[i] + j] = nodesArray[3 * i + j];
                     }
                 }
-                mesh.nodesArray = newNodesArray;
+                this._nodes = newNodesArray;
                 for (var i = 0; i < numElements; i++) {
                     var indices = elementsArray[i];
                     for (var j = 0; j < indices.length; j++) {
@@ -270,123 +256,157 @@
                         indices[j] = newIndices[indices[j]];
                     }
                 }
-                mesh.exteriorFacesArray = exteriorFacesArray;
+                this.exteriorFaces = exteriorFacesArray;
             }
-            return mesh;
+        }
+        Object.defineProperty(MSHParser.prototype, "nodes", {
+            get: function () {
+                return this._nodes;
+            },
+            set: function (nodes) {
+                throw new Error("No nodes setter.");
+            },
+            enumerable: false,
+            configurable: true
+        });
+        MSHParser.prototype._parseNextLineAsUTF8 = function (uint8Array) {
+            // Find the first newline character in the uint8Array.
+            var newlineIndex = uint8Array.indexOf(10, this._offset); // 10 is the ASCII code for the newline character.
+            // Decode the uint8Array as a UTF-8 encoded string up until the newline character.
+            var text = MSHParser.decoder.decode(uint8Array.subarray(this._offset, newlineIndex));
+            // Update offset.
+            this._offset = newlineIndex + 1;
+            // Return the decoded string.
+            return text;
         };
-        MSHParser.prototype.parseSync = function (url) {
-            if (typeof window !== 'undefined') {
-                throw new Error('Cannot call MSHParser.parseSync() from a browser.');
-            }
-            // Load the file with fs.
-            var fs = require('fs');
-            var fileBuffer = fs.readFileSync(url);
-            return this._parse(Buffer.from(fileBuffer).buffer);
+        MSHParser._throwInvalidFormatError = function () {
+            throw new Error('Invalid .msh file format.');
         };
-        MSHParser.prototype.parseAsync = function (urlOrFile) {
-            var self = this;
-            return new Promise(function (resolve) {
-                self.parse(urlOrFile, function (mesh) {
-                    resolve(mesh);
-                });
-            });
+        MSHParser._isFiniteNumber = function (number) {
+            return !isNaN(number) && number !== Infinity && number !== -Infinity;
         };
-        // Parse the .msh file at the specified file path of File object.
-        // Made this compatible with Node and the browser, maybe there is a better way?
-        MSHParser.prototype.parse = function (urlOrFile, callback) {
-            var self = this;
-            if (typeof urlOrFile === 'string') {
-                if (typeof window !== 'undefined') {
-                    // Load the file with XMLHttpRequest.
-                    var request_1 = new XMLHttpRequest();
-                    request_1.open('GET', urlOrFile, true);
-                    request_1.responseType = 'arraybuffer';
-                    request_1.onload = function () {
-                        var mesh = self._parse(request_1.response);
-                        // Call the callback function with the parsed mesh data.
-                        callback(mesh);
-                    };
-                    request_1.send();
-                }
-                else {
-                    // Call the callback function with the parsed mesh data.
-                    callback(this.parseSync(urlOrFile));
-                }
-            }
-            else {
-                // We only ever hit this in the browser.
-                // Load the file with FileReader.
-                if (!MSHParser.reader)
-                    MSHParser.reader = new FileReader();
-                MSHParser.reader.onload = function () {
-                    var mesh = self._parse(MSHParser.reader.result);
-                    // Call the callback function with the parsed mesh data.
-                    callback(mesh);
-                };
-                MSHParser.reader.readAsArrayBuffer(urlOrFile);
+        MSHParser._numNodesPerElementType = function (elementType) {
+            switch (elementType) {
+                case 2:
+                    return 3; // Triangle
+                case 3:
+                    return 4; // Quad
+                case 4:
+                    return 4; // Tetrahedron
+                case 5:
+                    return 8; // Hexahedron
+                default:
+                    throw new Error("Element type ".concat(elementType, " is not supported yet."));
             }
         };
-        MSHParser.calculateEdges = function (mesh) {
-            var elementsArray = mesh.elementsArray, isTetMesh = mesh.isTetMesh;
-            if (!isTetMesh)
-                throw new Error("MSHParser.calculateEdges() is not defined for non-tet meshes.");
-            // Calc all edges in mesh, use hash table to cover each edge only once.
-            var hash = {};
-            for (var i = 0, numElements = elementsArray.length; i < numElements; i++) {
-                var elementIndices = elementsArray[i];
-                // For tetrahedra, create an edge between each pair of nodes in element.
-                var numNodes = elementIndices.length;
-                for (var j = 0; j < numNodes; j++) {
-                    for (var k = j + 1; k < numNodes; k++) {
-                        if (j === k)
-                            continue;
-                        var a = elementIndices[j];
-                        var b = elementIndices[k];
-                        var key = "".concat(Math.min(a, b), ",").concat(Math.max(a, b));
-                        hash[key] = true;
+        // Calculates the dot product of two vectors.
+        MSHParser._dotProduct = function (vector1, vector2) {
+            return vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2];
+        };
+        // Calculates the cross product of two vectors.
+        MSHParser._crossProduct = function (vector1, vector2) {
+            return [
+                vector1[1] * vector2[2] - vector1[2] * vector2[1],
+                vector1[2] * vector2[0] - vector1[0] * vector2[2],
+                vector1[0] * vector2[1] - vector1[1] * vector2[0]
+            ];
+        };
+        MSHParser._vecFromTo = function (from, to, nodesArray) {
+            return [
+                nodesArray[3 * to] - nodesArray[3 * from],
+                nodesArray[3 * to + 1] - nodesArray[3 * from + 1],
+                nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
+            ];
+        };
+        MSHParser._makeTriHash = function (a, b, c) {
+            // Find the minimum and maximum of the input numbers.
+            var min = Math.min(a, b, c);
+            var max = Math.max(a, b, c);
+            // Find the remaining number.
+            var remaining = a + b + c - min - max;
+            // Join the numbers in ascending order into a string with commas.
+            return "".concat(min, ",").concat(remaining, ",").concat(max);
+        };
+        Object.defineProperty(MSHParser.prototype, "edges", {
+            get: function () {
+                if (!this._edges) {
+                    var _a = this, elements = _a.elements, isTetMesh = _a.isTetMesh;
+                    if (!isTetMesh)
+                        throw new Error("MSHParser.edges is not defined for non-tet meshes.");
+                    // Calc all edges in mesh, use hash table to cover each edge only once.
+                    var hash = {};
+                    for (var i = 0, numElements = elements.length; i < numElements; i++) {
+                        var elementIndices = elements[i];
+                        // For tetrahedra, create an edge between each pair of nodes in element.
+                        var numNodes = elementIndices.length;
+                        for (var j = 0; j < numNodes; j++) {
+                            for (var k = j + 1; k < numNodes; k++) {
+                                if (j === k)
+                                    continue;
+                                var a = elementIndices[j];
+                                var b = elementIndices[k];
+                                var key = "".concat(Math.min(a, b), ",").concat(Math.max(a, b));
+                                hash[key] = true;
+                            }
+                        }
                     }
-                }
-            }
-            var keys = Object.keys(hash);
-            var edgesArray = new Uint32Array(keys.length * 2);
-            for (var i = 0, length_1 = keys.length; i < length_1; i++) {
-                var indices = keys[i].split(',');
-                edgesArray[2 * i] = parseInt(indices[0]);
-                edgesArray[2 * i + 1] = parseInt(indices[1]);
-            }
-            return edgesArray;
-        };
-        MSHParser.calculateExteriorEdges = function (mesh) {
-            var isTetMesh = mesh.isTetMesh;
-            var exteriorFacesArray = mesh.exteriorFacesArray;
-            if (!isTetMesh)
-                throw new Error("MSHParser.calculateExteriorEdges() is not defined for non-tet meshes.");
-            // Calc all exterior edges in mesh, use hash table to cover each edge only once.
-            var hash = {};
-            for (var i = 0, numFaces = exteriorFacesArray.length; i < numFaces; i++) {
-                var faceIndices = exteriorFacesArray[i];
-                // For triangles, create an edge between each pair of indices in face.
-                var numNodes = faceIndices.length;
-                for (var j = 0; j < numNodes; j++) {
-                    for (var k = j + 1; k < numNodes; k++) {
-                        if (j === k)
-                            continue;
-                        var a = faceIndices[j];
-                        var b = faceIndices[k];
-                        var key = "".concat(Math.min(a, b), ",").concat(Math.max(a, b));
-                        hash[key] = true;
+                    var keys = Object.keys(hash);
+                    var edgesArray = new Uint32Array(keys.length * 2);
+                    for (var i = 0, length_1 = keys.length; i < length_1; i++) {
+                        var indices = keys[i].split(',');
+                        edgesArray[2 * i] = parseInt(indices[0]);
+                        edgesArray[2 * i + 1] = parseInt(indices[1]);
                     }
+                    this._edges = edgesArray;
                 }
-            }
-            var keys = Object.keys(hash);
-            var edgesArray = new Uint32Array(keys.length * 2);
-            for (var i = 0, length_2 = keys.length; i < length_2; i++) {
-                var indices = keys[i].split(',');
-                edgesArray[2 * i] = parseInt(indices[0]);
-                edgesArray[2 * i + 1] = parseInt(indices[1]);
-            }
-            return edgesArray;
-        };
+                return this._edges;
+            },
+            set: function (edges) {
+                throw new Error("No edges setter.");
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(MSHParser.prototype, "exteriorEdges", {
+            get: function () {
+                if (!this._exteriorEdges) {
+                    var _a = this, isTetMesh = _a.isTetMesh, exteriorFaces = _a.exteriorFaces;
+                    if (!isTetMesh)
+                        throw new Error("MSHParser.exteriorEdges is not defined for non-tet meshes.");
+                    // Calc all exterior edges in mesh, use hash table to cover each edge only once.
+                    var hash = {};
+                    for (var i = 0, numFaces = exteriorFaces.length; i < numFaces; i++) {
+                        var faceIndices = exteriorFaces[i];
+                        // For triangles, create an edge between each pair of indices in face.
+                        var numNodes = faceIndices.length;
+                        for (var j = 0; j < numNodes; j++) {
+                            for (var k = j + 1; k < numNodes; k++) {
+                                if (j === k)
+                                    continue;
+                                var a = faceIndices[j];
+                                var b = faceIndices[k];
+                                var key = "".concat(Math.min(a, b), ",").concat(Math.max(a, b));
+                                hash[key] = true;
+                            }
+                        }
+                    }
+                    var keys = Object.keys(hash);
+                    var edgesArray = new Uint32Array(keys.length * 2);
+                    for (var i = 0, length_2 = keys.length; i < length_2; i++) {
+                        var indices = keys[i].split(',');
+                        edgesArray[2 * i] = parseInt(indices[0]);
+                        edgesArray[2 * i + 1] = parseInt(indices[1]);
+                    }
+                    this._exteriorEdges = edgesArray;
+                }
+                return this._exteriorEdges;
+            },
+            set: function (exteriorEdges) {
+                throw new Error("No exteriorEdges setter.");
+            },
+            enumerable: false,
+            configurable: true
+        });
         MSHParser._tetrahedronVolume = function (indices, nodesArray) {
             var a = indices[0], b = indices[1], c = indices[2], d = indices[3];
             // Calculate the vectors representing the edges of the tetrahedron.
@@ -398,70 +418,102 @@
             // https://en.wikipedia.org/wiki/Tetrahedron#Volume
             return Math.abs(MSHParser._dotProduct(v1, MSHParser._crossProduct(v2, v3))) / 6;
         };
-        MSHParser.calculateElementVolumes = function (mesh) {
-            var elementsArray = mesh.elementsArray, nodesArray = mesh.nodesArray, isTetMesh = mesh.isTetMesh;
-            if (!isTetMesh)
-                throw new Error("MSHParser.calculateElementVolumes() is not defined for non-tet meshes.");
-            var numElements = elementsArray.length;
-            var volumes = new Float32Array(numElements);
-            for (var i = 0; i < numElements; i++) {
-                volumes[i] = MSHParser._tetrahedronVolume(elementsArray[i], nodesArray);
-            }
-            return volumes;
-        };
-        MSHParser.calculateNodalVolumes = function (mesh) {
-            var elementsArray = mesh.elementsArray, nodesArray = mesh.nodesArray, isTetMesh = mesh.isTetMesh;
-            if (!isTetMesh)
-                throw new Error("MSHParser.calculateNodalVolumes() is not defined for non-tet meshes.");
-            var elementVolumes = MSHParser.calculateElementVolumes(mesh);
-            var nodalVolumes = new Float32Array(nodesArray.length / 3);
-            for (var i = 0, numElements = elementsArray.length; i < numElements; i++) {
-                var nodeIndices = elementsArray[i];
-                var numNodeIndices = nodeIndices.length;
-                for (var j = 0; j < numNodeIndices; j++) {
-                    var nodeIndex = nodeIndices[j];
-                    // Split element volume evenly across adjacent nodes.
-                    nodalVolumes[nodeIndex] += elementVolumes[i] / numNodeIndices;
+        Object.defineProperty(MSHParser.prototype, "elementVolumes", {
+            get: function () {
+                if (!this._elementVolumes) {
+                    var _a = this, elements = _a.elements, nodes = _a.nodes, isTetMesh = _a.isTetMesh;
+                    if (!isTetMesh)
+                        throw new Error("MSHParser.elementVolumes is not defined for non-tet meshes.");
+                    var numElements = elements.length;
+                    var volumes = new Float32Array(numElements);
+                    for (var i = 0; i < numElements; i++) {
+                        volumes[i] = MSHParser._tetrahedronVolume(elements[i], nodes);
+                    }
+                    this._elementVolumes = volumes;
                 }
-            }
-            return nodalVolumes;
-        };
-        MSHParser.calculateBoundingBox = function (mesh) {
-            var nodesArray = mesh.nodesArray;
-            var numNodes = nodesArray.length / 3;
-            var min = [Infinity, Infinity, Infinity];
-            var max = [-Infinity, -Infinity, -Infinity];
-            for (var i = 0; i < numNodes; i++) {
-                min[0] = Math.min(min[0], nodesArray[3 * i]);
-                min[1] = Math.min(min[1], nodesArray[3 * i + 1]);
-                min[2] = Math.min(min[2], nodesArray[3 * i + 2]);
-                max[0] = Math.max(max[0], nodesArray[3 * i]);
-                max[1] = Math.max(max[1], nodesArray[3 * i + 1]);
-                max[2] = Math.max(max[2], nodesArray[3 * i + 2]);
-            }
-            return {
-                min: min,
-                max: max,
-            };
-        };
+                return this._elementVolumes;
+            },
+            set: function (elementVolumes) {
+                throw new Error("No elementVolumes setter.");
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(MSHParser.prototype, "nodalVolumes", {
+            get: function () {
+                if (!this._nodalVolumes) {
+                    var _a = this, elements = _a.elements, nodes = _a.nodes, isTetMesh = _a.isTetMesh;
+                    if (!isTetMesh)
+                        throw new Error("MSHParser.nodalVolumes is not defined for non-tet meshes.");
+                    var elementVolumes = this.elementVolumes;
+                    var nodalVolumes = new Float32Array(nodes.length / 3);
+                    for (var i = 0, numElements = elements.length; i < numElements; i++) {
+                        var nodeIndices = elements[i];
+                        var numNodeIndices = nodeIndices.length;
+                        for (var j = 0; j < numNodeIndices; j++) {
+                            var nodeIndex = nodeIndices[j];
+                            // Split element volume evenly across adjacent nodes.
+                            nodalVolumes[nodeIndex] += elementVolumes[i] / numNodeIndices;
+                        }
+                    }
+                    this._nodalVolumes = nodalVolumes;
+                }
+                return this._nodalVolumes;
+            },
+            set: function (nodalVolumes) {
+                throw new Error("No nodalVolumes setter.");
+            },
+            enumerable: false,
+            configurable: true
+        });
+        Object.defineProperty(MSHParser.prototype, "boundingBox", {
+            get: function () {
+                if (!this._boundingBox) {
+                    var nodes = this.nodes;
+                    var numNodes = nodes.length / 3;
+                    var min = [Infinity, Infinity, Infinity];
+                    var max = [-Infinity, -Infinity, -Infinity];
+                    for (var i = 0; i < numNodes; i++) {
+                        min[0] = Math.min(min[0], nodes[3 * i]);
+                        min[1] = Math.min(min[1], nodes[3 * i + 1]);
+                        min[2] = Math.min(min[2], nodes[3 * i + 2]);
+                        max[0] = Math.max(max[0], nodes[3 * i]);
+                        max[1] = Math.max(max[1], nodes[3 * i + 1]);
+                        max[2] = Math.max(max[2], nodes[3 * i + 2]);
+                    }
+                    this._boundingBox = {
+                        min: min,
+                        max: max,
+                    };
+                }
+                return this._boundingBox;
+            },
+            set: function (boundingBox) {
+                throw new Error("No boundingBox setter.");
+            },
+            enumerable: false,
+            configurable: true
+        });
         /**
          * Scales nodes to unit bounding box and centers around origin.
          */
-        MSHParser.scaleNodesArrayToUnitBoundingBox = function (mesh) {
-            var nodesArray = mesh.nodesArray;
-            var _a = MSHParser.calculateBoundingBox(mesh), min = _a.min, max = _a.max;
+        MSHParser.prototype.scaleNodesToUnitBoundingBox = function () {
+            var _a = this, nodes = _a.nodes, boundingBox = _a.boundingBox;
+            var min = boundingBox.min, max = boundingBox.max;
             var diff = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
             var center = [(max[0] + min[0]) / 2, (max[1] + min[1]) / 2, (max[2] + min[2]) / 2];
             var scale = Math.max(diff[0], diff[1], diff[2]);
-            var scaledNodesArray = nodesArray.slice();
-            var numNodes = nodesArray.length / 3;
+            var numNodes = nodes.length / 3;
             for (var i = 0; i < numNodes; i++) {
                 for (var j = 0; j < 3; j++) {
                     // Uniform scale.
-                    scaledNodesArray[3 * i + j] = (nodesArray[3 * i + j] - center[j]) / scale;
+                    nodes[3 * i + j] = (nodes[3 * i + j] - center[j]) / scale;
                 }
             }
-            return scaledNodesArray;
+            delete this._boundingBox;
+            delete this._nodalVolumes;
+            delete this._elementVolumes;
+            return this;
         };
         // TextDecoder instance to decode the header as UTF-8.
         MSHParser.decoder = new TextDecoder();
@@ -469,6 +521,9 @@
     }());
 
     exports.MSHParser = MSHParser;
+    exports.loadMsh = loadMsh;
+    exports.loadMshAsync = loadMshAsync;
+    exports.parseMsh = parseMsh;
 
 }));
 //# sourceMappingURL=msh-parser.js.map

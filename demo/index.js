@@ -1,4 +1,4 @@
-const { MSHParser } = MSHParserLib;
+const { loadMsh } = MSHParserLib;
 
 const BUNNY_URL = '../test/msh/stanford_bunny.msh';
 const WINGNUT_URL = '../test/msh/wingnut.msh';
@@ -19,10 +19,8 @@ const PARAMS = {
 
 let internalMesh, externalMesh, wireframe;
 
-// Create a new parser instance,
-const parser = new MSHParser();
 // Parse the .msh file using the specified file path.
-parser.parse(PARAMS.url, initThreeJSGeometry);
+loadMsh(PARAMS.url, initThreeJSGeometry);
 
 
 // UI
@@ -76,7 +74,7 @@ pane.addInput(PARAMS, 'url', {
 	},
 }).on('change', () => {
 	pane.title = PARAMS.url.split('/').pop();
-	parser.parse(PARAMS.url, initThreeJSGeometry);
+	loadMsh(PARAMS.url, initThreeJSGeometry);
 });
 pane.addButton({
 	title: 'Upload .msh (or Drop/Paste)',
@@ -212,16 +210,16 @@ function removeThreeObject(object) {
 	object.geometry.dispose();
 }
 
-function initExternalMesh(positionsAttribute, exteriorFacesArray) {
+function initExternalMesh(positionsAttribute, exteriorFaces) {
 	// Remove previous mesh.
 	if (externalMesh) removeThreeObject(externalMesh);
 
 	// Create an array of triangle indices for the buffer geometry.
-	const numTriangles = exteriorFacesArray.length;
+	const numTriangles = exteriorFaces.length;
 	const indices = new Uint32Array(numTriangles * 3);
 	for (let i = 0; i < numTriangles; i++) {
 		for (let j = 0; j < 3; j++) {
-			indices[3 * i + j] = exteriorFacesArray[i][j];
+			indices[3 * i + j] = exteriorFaces[i][j];
 		}
 	}
 
@@ -239,17 +237,17 @@ function initExternalMesh(positionsAttribute, exteriorFacesArray) {
 	return mesh;
 }
 
-function initInternalMesh(positionsAttribute, elementsArray, numExteriorNodes) {
+function initInternalMesh(positionsAttribute, elements, numExteriorNodes) {
 	// Remove previous mesh.
 	if (internalMesh) removeThreeObject(internalMesh);
 
 	// Init internal mesh.
-	const numElements = elementsArray.length;
+	const numElements = elements.length;
 	const indices = new Uint32Array(numElements * 4 * 3);
 	const hash = {};
 	// First calc all internal triangles.
 	for (let i = 0; i < numElements; i++) {
-		const nodeIndices = elementsArray[i];
+		const nodeIndices = elements[i];
 		for (let j = 0; j < 4; j++) {
 			const a = nodeIndices[j];
 			const b = nodeIndices[(j + 1) % 4];
@@ -295,7 +293,7 @@ function initWireframe(positionsAttribute, mshData) {
 
 	// Add wireframe.
 	const geometry = new THREE.BufferGeometry();
-	geometry.setIndex(new THREE.BufferAttribute(MSHParser.calculateEdges(mshData), 1));
+	geometry.setIndex(new THREE.BufferAttribute(mshData.edges, 1));
 	geometry.setAttribute('position', positionsAttribute);
 	const material = shaderMaterialWireframe.clone();
 	material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
@@ -306,10 +304,10 @@ function initWireframe(positionsAttribute, mshData) {
 
 function initThreeJSGeometry(mshData) {
 	const {
-		nodesArray,
-		elementsArray,
+		nodes,
+		elements,
 		isTetMesh,
-		exteriorFacesArray,
+		exteriorFaces,
 		numExteriorNodes,
 	} = mshData;
 
@@ -318,17 +316,17 @@ function initThreeJSGeometry(mshData) {
 		return;
 	}
 
-	setInfo(`${(nodesArray.length / 3).toLocaleString()} nodes<br/>
+	setInfo(`${(nodes.length / 3).toLocaleString()} nodes<br/>
 		${numExteriorNodes.toLocaleString()} exterior nodes<br/>
-		${elementsArray.length.toLocaleString()} elements<br/>
-		${exteriorFacesArray.length.toLocaleString()} exterior faces`);
+		${elements.length.toLocaleString()} elements<br/>
+		${exteriorFaces.length.toLocaleString()} exterior faces`);
 
 	// Share positions attribute between meshes.
-	const positions = nodesArray.constructor === Float32Array ? nodesArray : new Float32Array(nodesArray);
+	const positions = nodes.constructor === Float32Array ? nodes : new Float32Array(nodes);
 	const positionsAttribute = new THREE.BufferAttribute(positions, 3);
 
-	externalMesh = initExternalMesh(positionsAttribute, exteriorFacesArray);
-	internalMesh = initInternalMesh(positionsAttribute, elementsArray, numExteriorNodes);
+	externalMesh = initExternalMesh(positionsAttribute, exteriorFaces);
+	internalMesh = initInternalMesh(positionsAttribute, elements, numExteriorNodes);
 	wireframe = initWireframe(positionsAttribute, mshData);
 
 	// Center and scale the positions attribute.
@@ -343,7 +341,7 @@ function initThreeJSGeometry(mshData) {
 	// Update ui.
 	PARAMS.highlightedVertex = -1;
 	vertexHighlighter.visible = false;
-	highlightedVertexSlider = makeHighlightedVertexSlider(nodesArray.length / 3 - 1);
+	highlightedVertexSlider = makeHighlightedVertexSlider(nodes.length / 3 - 1);
 
 	// Render.
 	render();
@@ -434,7 +432,7 @@ function loadFile(file) {
 	const extension = getExtension(file.name);
 	if (extension !== 'msh' && extension !== 'mesh') return;
 	pane.title = file.name;
-	parser.parse(file, initThreeJSGeometry);
+	loadMsh(file, initThreeJSGeometry);
 	return true;
 }
 
