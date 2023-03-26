@@ -13,7 +13,7 @@ Live demo: [apps.amandaghassaei.com/msh-parser/demo/](https://apps.amandaghassae
 
 ## .msh File Format
 
-The MSH file format is used for storing 3D finite element mesh information for simulation purposes.  This library does not generate or render .msh files, but it will allow you to parse them in a browser or nodejs environment.  You can generate tetrahedral .msh files from boundary meshes (.stl, .obj) using [TetWild](https://wildmeshing.github.io/tetwild/).  You can view .msh files with [Gmsh](https://gmsh.info/) or by dragging them into the [demo app](https://apps.amandaghassaei.com/msh-parser/demo/).  Example .msh files can be found in [test/msh/](https://github.com/amandaghassaei/msh-parser/tree/main/test/msh).
+The MSH file format is used for storing 3D finite element mesh information for simulation purposes.  This library does not generate or render .msh files, but it will allow you to parse them in a browser or Nodejs environment.  You can generate tetrahedral .msh files from boundary meshes (.stl, .obj) using [TetWild](https://wildmeshing.github.io/tetwild/).  You can view .msh files with [Gmsh](https://gmsh.info/) or by dragging them into the [demo app](https://apps.amandaghassaei.com/msh-parser/demo/).  Example .msh files can be found in [test/msh/](https://github.com/amandaghassaei/msh-parser/tree/main/test/msh).
 
 
 ## Installation
@@ -27,7 +27,7 @@ npm install msh-parser
 and import into your project:
 
 ```js
-import { MSHParser } from 'msh-parser';
+import { parseMsh, loadMsh, loadMshAsync } from 'msh-parser';
 ```
 
 ### Import into HTML
@@ -47,34 +47,35 @@ Import [msh-parser.js](https://github.com/amandaghassaei/msh-parser/blob/main/di
 `MSHParserLib` will be accessible globally:
 
 ```js
-const { MSHParser } = MSHParserLib;
+const { parseMsh, loadMsh, loadMshAsync } = MSHParserLib;
 ```
 
 
 ## Use
 
 ```js
-// Create a new parser instance,
-const parser = new MSHParser();
-// Parse the .msh file using the specified file path.
-parser.parse('./bunny.msh', (mesh) => {
+// Load and parse the .msh file using the specified file path.
+loadMsh('./bunny.msh', (mesh) => {
   const {
-    nodesArray,
-    elementsArray,
+    nodes,
+    elements,
+    edges,
+    exteriorEdges,
+    exteriorFaces,
+    elementVolumes,
+    nodalVolumes,
     isTetMesh,
-    exteriorFacesArray,
     numExteriorNodes,
+    boundingBox,
   } = mesh;
 });
 
 // Also try:
-// const mesh = await parser.parseAsync('./bunny.msh');
-// Nodejs only:
-// const mesh = parser.parseSync('./bunny.msh');
+// const mesh = loadMshAsync('./bunny.msh');
 ```
 
-- `nodesArray` is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
-- `elementsArray` is a 2 dimensional array of node indices corresponding to the finite elements of the mesh.  For a tetrahedral mesh, all elements will contain four node indices, but element length may vary for other types of meshes.  `elementsArray` has the following structure:
+- `nodes` is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
+- `elements` is a 2 dimensional array of node indices corresponding to the finite elements of the mesh.  For a tetrahedral mesh, all elements will contain four node indices, but element length may vary for other types of meshes.  `elements` has the following structure:
 ```js
 [
   [e0a, e0b, e0c, e0d], // Element 0
@@ -82,8 +83,9 @@ parser.parse('./bunny.msh', (mesh) => {
   ...
 ]
 ```
-- `isTetMesh` is a boolean that indicates all mesh elements are tetrahedra.
-- `exteriorFacesArray` (tet-meshes only for now) is a 2 dimensional array of node indices corresponding to the exterior faces of the mesh.  For a tetrahedral mesh, all exterior faces will be triangles, but face shape may vary for other types of meshes.  Triangular exterior faces have CC winding order.  `exteriorFacesArray` has the following structure:
+- `edges` (tet-meshes only for now) is a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.
+- `exteriorEdges` (tet-meshes only for now) is a Uint32Array containing all pairs of exterior edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.
+- `exteriorFaces` (tet-meshes only for now) is a 2 dimensional array of node indices corresponding to the exterior faces of the mesh.  For a tetrahedral mesh, all exterior faces will be triangles, but face shape may vary for other types of meshes.  Triangular exterior faces have CC winding order.  `exteriorFacesArray` has the following structure:
 ```js
 [
   [f0a, f0b, f0c], // Face 0
@@ -91,16 +93,21 @@ parser.parse('./bunny.msh', (mesh) => {
   ...
 ]
 ```
-- `numExteriorNodes` (tet-meshes only for now) is the number of nodes that lie on the exterior of the mesh.  `nodesArray` has been ordered so that the nodes in the range [0, numExteriorNodes - 1] correspond to the nodes referenced by `exteriorFacesArray`.
+- `elementVolumes` (tet-meshes only for now) is a Float32Array containing the volume of all elements in the mesh.
+- `nodalVolumes` (tet-meshes only for now) is a Float32Array containing the approximate volume of all nodes in the mesh.  This is calculated by evenly distributing element volume across adjacent nodes.
+- `isTetMesh` is a boolean that indicates all mesh elements are tetrahedra.
+- `numExteriorNodes` (tet-meshes only for now) is the number of nodes that lie on the exterior of the mesh.  `nodes` has been ordered so that the nodes in the range [0, numExteriorNodes - 1] correspond to the nodes referenced by `exteriorFaces`.
+- `boundingBox` is the min and max of the mesh's bounding box in the form: `{ min: [x, y, z], max: [x, y, z] }`.
 
-msh-parser also contains helper functions for analyzing the mesh data:
 
-- `MSHParser.calculateEdges(mesh)` returns a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  This function is only implemented for tet-meshes at the moment.
-- `MSHParser.calculateExteriorEdges(mesh)` returns a Uint32Array containing all pairs of exterior edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  This function is only implemented for tet-meshes at the moment.
-- `MSHParser.calculateElementVolumes(mesh)` returns a Float32Array containing the volume of all elements in the mesh.  This function is only implemented for tet-meshes at the moment.
-- `MSHParser.calculateNodalVolumes(mesh)` returns a Float32Array containing the approximate volume of all nodes in the mesh.  This is calculated by evenly distributing element volume across adjacent nodes.  This function is only implemented for tet-meshes at the moment.
-- `MSHParser.calculateBoundingBox(mesh)` returns the min and max of the mesh's bounding box.  min and max are in the form: `[x, y, z]`.
-- `MSHParser.scaleNodesArrayToUnitBoundingBox(mesh)` returns the a copy of the `nodesArray`, with the positions scaled to fit inside a unit box and centered around the origin.
+The resulting mesh object returned by `parseMsh`, `loadMsh`, and `loadMshAsync` also exposes methods for modifying its geometry:
+
+```js
+mesh.mergeVertices().scaleVerticesToUnitBoundingBox();
+const { faceIndices } = mesh;
+```
+
+- `MSHParser.scaleNodesToUnitBoundingBox()` scales the `nodes` values (in place) to fit inside a unit box and centered around the origin.
 
 
 ## Limitations
