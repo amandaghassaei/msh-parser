@@ -6,7 +6,7 @@
 [![NPM Downloads](https://img.shields.io/npm/dw/msh-parser)](https://www.npmtrends.com/msh-parser)
 [![License](https://img.shields.io/npm/l/msh-parser)](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt)
 
-Finite element .msh format parser, written in TypeScript.
+Finite element .msh format parser – unit tested and written in TypeScript.
 
 Live demo: [apps.amandaghassaei.com/msh-parser/demo/](https://apps.amandaghassaei.com/msh-parser/demo/)
 
@@ -69,11 +69,10 @@ loadMsh('./bunny.msh', (mesh) => {
     boundingBox,
   } = mesh;
 });
-
 // Also try:
 // const mesh = loadMshAsync('./bunny.msh');
 
-// Or parse synchronously.
+// Or parse synchronously from file buffer.
 const mesh = parseMsh(fs.readFileSync('./bunny.msh'));
 ```
 
@@ -127,6 +126,11 @@ mesh.scaleNodesToUnitBoundingBox();
 ## License
 
 This work is licensed under an [MIT License](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt).
+
+
+## Related Libraries
+
+- [stl-parser](https://github.com/amandaghassaei/stl-parser) - binary and ASCII .stl file parser
 
 
 ## Development
