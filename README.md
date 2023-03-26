@@ -72,6 +72,9 @@ loadMsh('./bunny.msh', (mesh) => {
 
 // Also try:
 // const mesh = loadMshAsync('./bunny.msh');
+
+// Or parse synchronously.
+const mesh = parseMsh(fs.readFileSync('./bunny.msh'));
 ```
 
 - `nodes` is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
@@ -83,8 +86,8 @@ loadMsh('./bunny.msh', (mesh) => {
   ...
 ]
 ```
-- `edges` (tet-meshes only for now) is a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.
-- `exteriorEdges` (tet-meshes only for now) is a Uint32Array containing all pairs of exterior edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.
+- `edges` (tet-meshes only for now) is a Uint32Array containing all pairs of edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  `edges` is calculated when queried and then cached.
+- `exteriorEdges` (tet-meshes only for now) is a Uint32Array containing all pairs of exterior edges in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  `exteriorEdges` is calculated when queried and then cached.
 - `exteriorFaces` (tet-meshes only for now) is a 2 dimensional array of node indices corresponding to the exterior faces of the mesh.  For a tetrahedral mesh, all exterior faces will be triangles, but face shape may vary for other types of meshes.  Triangular exterior faces have CC winding order.  `exteriorFacesArray` has the following structure:
 ```js
 [
@@ -93,18 +96,17 @@ loadMsh('./bunny.msh', (mesh) => {
   ...
 ]
 ```
-- `elementVolumes` (tet-meshes only for now) is a Float32Array containing the volume of all elements in the mesh.
-- `nodalVolumes` (tet-meshes only for now) is a Float32Array containing the approximate volume of all nodes in the mesh.  This is calculated by evenly distributing element volume across adjacent nodes.
+- `elementVolumes` (tet-meshes only for now) is a Float32Array containing the volume of all elements in the mesh.  `elementVolumes` is calculated when queried and then cached.
+- `nodalVolumes` (tet-meshes only for now) is a Float32Array containing the approximate volume of all nodes in the mesh.  This is calculated by evenly distributing element volume across adjacent nodes.  `nodalVolumes` is calculated when queried and then cached.
 - `isTetMesh` is a boolean that indicates all mesh elements are tetrahedra.
 - `numExteriorNodes` (tet-meshes only for now) is the number of nodes that lie on the exterior of the mesh.  `nodes` has been ordered so that the nodes in the range [0, numExteriorNodes - 1] correspond to the nodes referenced by `exteriorFaces`.
-- `boundingBox` is the min and max of the mesh's bounding box in the form: `{ min: [x, y, z], max: [x, y, z] }`.
+- `boundingBox` is the min and max of the mesh's bounding box in the form: `{ min: [x, y, z], max: [x, y, z] }`.  `boundingBox` is calculated when queried and then cached.
 
 
 The resulting mesh object returned by `parseMsh`, `loadMsh`, and `loadMshAsync` also exposes methods for modifying its geometry:
 
 ```js
-mesh.mergeVertices().scaleVerticesToUnitBoundingBox();
-const { faceIndices } = mesh;
+mesh.scaleNodesToUnitBoundingBox();
 ```
 
 - `MSHParser.scaleNodesToUnitBoundingBox()` scales the `nodes` values (in place) to fit inside a unit box and centered around the origin.
