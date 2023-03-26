@@ -348,7 +348,7 @@ class _MSHMesh {
 	get edges() {
 		if (!this._edges) {
 			const { elements, isTetMesh } = this;
-			if (!isTetMesh) throw new Error(`msh-parser.edges is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser: MSHMesh.edges is not defined for non-tet meshes.`);
 			// Calc all edges in mesh, use hash table to cover each edge only once.
 			const hash: { [key: string]: boolean } = {};
 			for (let i = 0, numElements = elements.length; i < numElements; i++) {
@@ -384,7 +384,7 @@ class _MSHMesh {
 	get exteriorEdges() {
 		if (!this._exteriorEdges) {
 			const { isTetMesh, _exteriorFaces } = this; 
-			if (!isTetMesh) throw new Error(`msh-parser.exteriorEdges is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser: MSHMesh.exteriorEdges is not defined for non-tet meshes.`);
 			// Calc all exterior edges in mesh, use hash table to cover each edge only once.
 			const hash: { [key: string]: boolean } = {};
 			for (let i = 0, numFaces = _exteriorFaces!.length; i < numFaces; i++) {
@@ -418,7 +418,7 @@ class _MSHMesh {
 	}
 
 	get exteriorFaces() {
-		if (!this.isTetMesh || !this._exteriorFaces) throw new Error(`msh-parser.exteriorFaces is not defined for non-tet meshes.`);
+		if (!this.isTetMesh || !this._exteriorFaces) throw new Error(`msh-parser: MSHMesh.exteriorFaces is not defined for non-tet meshes.`);
 		return this._exteriorFaces;
 	}
 
@@ -442,7 +442,7 @@ class _MSHMesh {
 	get elementVolumes() {
 		if (!this._elementVolumes) {
 			const { elements, nodes, isTetMesh } = this;
-			if (!isTetMesh) throw new Error(`msh-parser.elementVolumes is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser: MSHMesh.elementVolumes is not defined for non-tet meshes.`);
 			const numElements = elements.length;
 			const volumes = new Float32Array(numElements);
 			for (let i = 0; i < numElements; i++) {
@@ -460,7 +460,7 @@ class _MSHMesh {
 	get nodalVolumes() {
 		if (!this._nodalVolumes) {
 			const { elements, nodes, isTetMesh } = this;
-			if (!isTetMesh) throw new Error(`msh-parser.nodalVolumes is not defined for non-tet meshes.`);
+			if (!isTetMesh) throw new Error(`msh-parser: MSHMesh.nodalVolumes is not defined for non-tet meshes.`);
 			const { elementVolumes } = this;
 			const nodalVolumes = new Float32Array(nodes.length / 3);
 			for (let i = 0, numElements = elements.length; i < numElements; i++) {
@@ -482,7 +482,7 @@ class _MSHMesh {
 	}
 
 	get numExteriorNodes() {
-		if (!this.isTetMesh || !this._numExteriorNodes) throw new Error(`msh-parser.numExteriorNodes is not defined for non-tet meshes.`);
+		if (!this.isTetMesh || !this._numExteriorNodes) throw new Error(`msh-parser: MSHMesh.numExteriorNodes is not defined for non-tet meshes.`);
 		return this._numExteriorNodes;
 	}
 

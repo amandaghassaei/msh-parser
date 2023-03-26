@@ -108,7 +108,7 @@ The mesh object returned by `parseMsh`, `loadMsh`, and `loadMshAsync` also expos
 mesh.scaleNodesToUnitBoundingBox();
 ```
 
-- `MSHParser.scaleNodesToUnitBoundingBox()` scales the `nodes` values (in place) to fit inside a unit box and centered around the origin.
+- `MSHMesh.scaleNodesToUnitBoundingBox()` scales the `nodes` values (in place) to fit inside a unit box and centered around the origin.
 
 
 ## Limitations
