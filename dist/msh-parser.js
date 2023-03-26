@@ -4,6 +4,9 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.MSHParserLib = {}));
 })(this, (function (exports) { 'use strict';
 
+    /**
+     * Parse .msh file asynchronously (returns Promise).
+     */
     function loadMshAsync(urlOrFile) {
         return new Promise(function (resolve) {
             loadMsh(urlOrFile, function (mesh) {
@@ -11,17 +14,19 @@
             });
         });
     }
-    // Parse the .msh file at the specified file path of File object.
-    // Made this compatible with Node and the browser, maybe there is a better way?
+    /**
+     * Load and parse the .msh file at the specified file path or File object.
+     */
     function loadMsh(urlOrFile, callback) {
         if (typeof urlOrFile === 'string') {
+            // Made this compatible with Node and the browser, maybe there is a better way?
             if (typeof window !== 'undefined') {
                 // Load the file with XMLHttpRequest.
                 var request_1 = new XMLHttpRequest();
                 request_1.open('GET', urlOrFile, true);
                 request_1.responseType = 'arraybuffer';
                 request_1.onload = function () {
-                    var mesh = new _MSHParser(request_1.response);
+                    var mesh = new _MSHMesh(request_1.response);
                     // Call the callback function with the parsed mesh data.
                     callback(mesh);
                 };
@@ -31,7 +36,7 @@
                 // Call the callback function with the parsed mesh data.
                 import('fs').then(function (fs) {
                     var buffer = fs.readFileSync(urlOrFile);
-                    callback(new _MSHParser(new Uint8Array(buffer).buffer));
+                    callback(new _MSHMesh(new Uint8Array(buffer).buffer));
                 });
             }
         }
@@ -40,21 +45,24 @@
             // Load the file with FileReader.
             var reader_1 = new FileReader();
             reader_1.onload = function () {
-                var mesh = new _MSHParser(reader_1.result);
+                var mesh = new _MSHMesh(reader_1.result);
                 // Call the callback function with the parsed mesh data.
                 callback(mesh);
             };
             reader_1.readAsArrayBuffer(urlOrFile);
         }
     }
+    /**
+     * Synchronously parse an already loaded .msh file buffer.
+     */
     function parseMsh(data) {
         data = data.buffer ? new Uint8Array(data).buffer : data;
-        return new _MSHParser(data);
+        return new _MSHMesh(data);
     }
     // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
-    // Define the _MSHParser class.
-    var _MSHParser = /** @class */ (function () {
-        function _MSHParser(arrayBuffer) {
+    // Define the MSHMesh class.
+    var _MSHMesh = /** @class */ (function () {
+        function _MSHMesh(arrayBuffer) {
             // Header offset.
             this._offset = 0;
             var dataView = new DataView(arrayBuffer);
@@ -62,10 +70,10 @@
             var uint8Array = new Uint8Array(dataView.buffer);
             // Parse header.
             if (this._parseNextLineAsUTF8(uint8Array) !== '$MeshFormat')
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             var _a = this._parseNextLineAsUTF8(uint8Array).split(' ').map(function (el) { return parseFloat(el); }), version = _a[0], type = _a[1], dataSize = _a[2];
             if (isNaN(version) || isNaN(type) || isNaN(dataSize))
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             if (dataSize !== 8 && dataSize !== 4)
                 throw new Error("msh-parser: This library currently parses .msh files with data size === 8 or 4.  Current file has data size = ".concat(dataSize, ". Please submit an issue to the GitHub repo if you encounter this error and attach a sample file."));
             var doublePrecision = dataSize === 8;
@@ -81,10 +89,10 @@
                 this._offset += 4;
             }
             if (this._parseNextLineAsUTF8(uint8Array) !== '$EndMeshFormat')
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             // Read the number of nodes.
             if (this._parseNextLineAsUTF8(uint8Array) !== '$Nodes')
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             var numNodes = parseInt(this._parseNextLineAsUTF8(uint8Array));
             // Loop through the nodes.
             var nodesArray = doublePrecision ? new Float64Array(3 * numNodes) : new Float32Array(3 * numNodes);
@@ -111,14 +119,14 @@
             }
             // Check that all nodes are finite.
             for (var i = 0; i < nodesArray.length; i++) {
-                if (!_MSHParser._isFiniteNumber(nodesArray[i]))
+                if (!_MSHMesh._isFiniteNumber(nodesArray[i]))
                     throw new Error('msh-parser: NaN or Inf detected in input file.');
             }
             if (this._parseNextLineAsUTF8(uint8Array) !== '$EndNodes')
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             this._nodes = nodesArray;
             if (this._parseNextLineAsUTF8(uint8Array) !== '$Elements')
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             // Read the number of elements.
             var numElements = parseInt(this._parseNextLineAsUTF8(uint8Array));
             var elementsArray = [];
@@ -139,7 +147,7 @@
                     var elementNumTags = dataView.getInt32(this._offset + 8, isLE);
                     if (elementType !== 4)
                         isTetMesh = false;
-                    var numElementNodes = _MSHParser._numNodesPerElementType(elementType);
+                    var numElementNodes = _MSHMesh._numNodesPerElementType(elementType);
                     // Update the current file's byte offset.
                     this._offset += 12;
                     for (var i = 0; i < elementNumElements; i++) {
@@ -159,7 +167,7 @@
                         var nodeIndices = elementsArray[index];
                         for (var j = 0; j < numElementNodes; j++) {
                             var nodeIndex = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
-                            if (!_MSHParser._isFiniteNumber(nodeIndex))
+                            if (!_MSHMesh._isFiniteNumber(nodeIndex))
                                 throw new Error('msh-parser: NaN or Inf detected in input file.');
                             if (nodeIndex < 0 || nodeIndex >= numNodes)
                                 throw new Error("msh-parser: Invalid node index ".concat(nodeIndex, " for numNodes === ").concat(numNodes, "."));
@@ -175,7 +183,7 @@
                 throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
             }
             if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements')
-                _MSHParser._throwInvalidFormatError();
+                _MSHMesh._throwInvalidFormatError();
             this.isTetMesh = isTetMesh;
             // TODO: make this work for non-tet.
             if (isTetMesh) {
@@ -185,7 +193,7 @@
                 for (var i = 0; i < numElements; i++) {
                     var indices = elementsArray[i];
                     for (var j = 0; j < indices.length; j++) {
-                        var key = _MSHParser._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
+                        var key = _MSHMesh._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
                         if (hash[key]) {
                             hash[key].push(indices[(j + 3) % indices.length]);
                             if (hash[key].length > 2) {
@@ -211,7 +219,7 @@
                     // d is the internal node of this tet.
                     var d = hash[key][0];
                     // Use d to calculate the winding order of the triangle.
-                    var orientation_1 = _MSHParser._dotProduct(_MSHParser._crossProduct(_MSHParser._vecFromTo(a, b, nodesArray), _MSHParser._vecFromTo(a, c, nodesArray)), _MSHParser._vecFromTo(a, d, nodesArray));
+                    var orientation_1 = _MSHMesh._dotProduct(_MSHMesh._crossProduct(_MSHMesh._vecFromTo(a, b, nodesArray), _MSHMesh._vecFromTo(a, c, nodesArray)), _MSHMesh._vecFromTo(a, d, nodesArray));
                     exteriorFacesArray.push(orientation_1 < 0 ? [a, b, c] : [a, c, b]);
                     // Mark all nodes as exterior.
                     exteriorNodes[a] = 1;
@@ -257,7 +265,7 @@
                 this._exteriorFaces = exteriorFacesArray;
             }
         }
-        Object.defineProperty(_MSHParser.prototype, "nodes", {
+        Object.defineProperty(_MSHMesh.prototype, "nodes", {
             get: function () {
                 return this._nodes;
             },
@@ -267,23 +275,23 @@
             enumerable: false,
             configurable: true
         });
-        _MSHParser.prototype._parseNextLineAsUTF8 = function (uint8Array) {
+        _MSHMesh.prototype._parseNextLineAsUTF8 = function (uint8Array) {
             // Find the first newline character in the uint8Array.
             var newlineIndex = uint8Array.indexOf(10, this._offset); // 10 is the ASCII code for the newline character.
             // Decode the uint8Array as a UTF-8 encoded string up until the newline character.
-            var text = _MSHParser.decoder.decode(uint8Array.subarray(this._offset, newlineIndex));
+            var text = _MSHMesh.decoder.decode(uint8Array.subarray(this._offset, newlineIndex));
             // Update offset.
             this._offset = newlineIndex + 1;
             // Return the decoded string.
             return text;
         };
-        _MSHParser._throwInvalidFormatError = function () {
+        _MSHMesh._throwInvalidFormatError = function () {
             throw new Error('msh-parser: Invalid .msh file format.');
         };
-        _MSHParser._isFiniteNumber = function (number) {
+        _MSHMesh._isFiniteNumber = function (number) {
             return !isNaN(number) && number !== Infinity && number !== -Infinity;
         };
-        _MSHParser._numNodesPerElementType = function (elementType) {
+        _MSHMesh._numNodesPerElementType = function (elementType) {
             switch (elementType) {
                 case 2:
                     return 3; // Triangle
@@ -298,25 +306,25 @@
             }
         };
         // Calculates the dot product of two vectors.
-        _MSHParser._dotProduct = function (vector1, vector2) {
+        _MSHMesh._dotProduct = function (vector1, vector2) {
             return vector1[0] * vector2[0] + vector1[1] * vector2[1] + vector1[2] * vector2[2];
         };
         // Calculates the cross product of two vectors.
-        _MSHParser._crossProduct = function (vector1, vector2) {
+        _MSHMesh._crossProduct = function (vector1, vector2) {
             return [
                 vector1[1] * vector2[2] - vector1[2] * vector2[1],
                 vector1[2] * vector2[0] - vector1[0] * vector2[2],
                 vector1[0] * vector2[1] - vector1[1] * vector2[0]
             ];
         };
-        _MSHParser._vecFromTo = function (from, to, nodesArray) {
+        _MSHMesh._vecFromTo = function (from, to, nodesArray) {
             return [
                 nodesArray[3 * to] - nodesArray[3 * from],
                 nodesArray[3 * to + 1] - nodesArray[3 * from + 1],
                 nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
             ];
         };
-        _MSHParser._makeTriHash = function (a, b, c) {
+        _MSHMesh._makeTriHash = function (a, b, c) {
             // Find the minimum and maximum of the input numbers.
             var min = Math.min(a, b, c);
             var max = Math.max(a, b, c);
@@ -325,7 +333,7 @@
             // Join the numbers in ascending order into a string with commas.
             return "".concat(min, ",").concat(remaining, ",").concat(max);
         };
-        Object.defineProperty(_MSHParser.prototype, "edges", {
+        Object.defineProperty(_MSHMesh.prototype, "edges", {
             get: function () {
                 if (!this._edges) {
                     var _a = this, elements = _a.elements, isTetMesh = _a.isTetMesh;
@@ -365,7 +373,7 @@
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(_MSHParser.prototype, "exteriorEdges", {
+        Object.defineProperty(_MSHMesh.prototype, "exteriorEdges", {
             get: function () {
                 if (!this._exteriorEdges) {
                     var _a = this, isTetMesh = _a.isTetMesh, _exteriorFaces = _a._exteriorFaces;
@@ -405,7 +413,7 @@
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(_MSHParser.prototype, "exteriorFaces", {
+        Object.defineProperty(_MSHMesh.prototype, "exteriorFaces", {
             get: function () {
                 if (!this.isTetMesh || !this._exteriorFaces)
                     throw new Error("msh-parser.exteriorFaces is not defined for non-tet meshes.");
@@ -417,18 +425,18 @@
             enumerable: false,
             configurable: true
         });
-        _MSHParser._tetrahedronVolume = function (indices, nodesArray) {
+        _MSHMesh._tetrahedronVolume = function (indices, nodesArray) {
             var a = indices[0], b = indices[1], c = indices[2], d = indices[3];
             // Calculate the vectors representing the edges of the tetrahedron.
-            var v1 = _MSHParser._vecFromTo(d, a, nodesArray);
-            var v2 = _MSHParser._vecFromTo(d, b, nodesArray);
-            var v3 = _MSHParser._vecFromTo(d, c, nodesArray);
+            var v1 = _MSHMesh._vecFromTo(d, a, nodesArray);
+            var v2 = _MSHMesh._vecFromTo(d, b, nodesArray);
+            var v3 = _MSHMesh._vecFromTo(d, c, nodesArray);
             // Calculate the volume of the tetrahedron using the formula:""
             // (1/6) * |v1 . (v2 x v3)|
             // https://en.wikipedia.org/wiki/Tetrahedron#Volume
-            return Math.abs(_MSHParser._dotProduct(v1, _MSHParser._crossProduct(v2, v3))) / 6;
+            return Math.abs(_MSHMesh._dotProduct(v1, _MSHMesh._crossProduct(v2, v3))) / 6;
         };
-        Object.defineProperty(_MSHParser.prototype, "elementVolumes", {
+        Object.defineProperty(_MSHMesh.prototype, "elementVolumes", {
             get: function () {
                 if (!this._elementVolumes) {
                     var _a = this, elements = _a.elements, nodes = _a.nodes, isTetMesh = _a.isTetMesh;
@@ -437,7 +445,7 @@
                     var numElements = elements.length;
                     var volumes = new Float32Array(numElements);
                     for (var i = 0; i < numElements; i++) {
-                        volumes[i] = _MSHParser._tetrahedronVolume(elements[i], nodes);
+                        volumes[i] = _MSHMesh._tetrahedronVolume(elements[i], nodes);
                     }
                     this._elementVolumes = volumes;
                 }
@@ -449,7 +457,7 @@
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(_MSHParser.prototype, "nodalVolumes", {
+        Object.defineProperty(_MSHMesh.prototype, "nodalVolumes", {
             get: function () {
                 if (!this._nodalVolumes) {
                     var _a = this, elements = _a.elements, nodes = _a.nodes, isTetMesh = _a.isTetMesh;
@@ -476,7 +484,7 @@
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(_MSHParser.prototype, "numExteriorNodes", {
+        Object.defineProperty(_MSHMesh.prototype, "numExteriorNodes", {
             get: function () {
                 if (!this.isTetMesh || !this._numExteriorNodes)
                     throw new Error("msh-parser.numExteriorNodes is not defined for non-tet meshes.");
@@ -488,7 +496,7 @@
             enumerable: false,
             configurable: true
         });
-        Object.defineProperty(_MSHParser.prototype, "boundingBox", {
+        Object.defineProperty(_MSHMesh.prototype, "boundingBox", {
             get: function () {
                 if (!this._boundingBox) {
                     var nodes = this.nodes;
@@ -519,7 +527,7 @@
         /**
          * Scales nodes to unit bounding box and centers around origin.
          */
-        _MSHParser.prototype.scaleNodesToUnitBoundingBox = function () {
+        _MSHMesh.prototype.scaleNodesToUnitBoundingBox = function () {
             var _a = this, nodes = _a.nodes, boundingBox = _a.boundingBox;
             var min = boundingBox.min, max = boundingBox.max;
             var diff = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
@@ -538,8 +546,8 @@
             return this;
         };
         // TextDecoder instance to decode the header as UTF-8.
-        _MSHParser.decoder = new TextDecoder();
-        return _MSHParser;
+        _MSHMesh.decoder = new TextDecoder();
+        return _MSHMesh;
     }());
 
     exports.loadMsh = loadMsh;
