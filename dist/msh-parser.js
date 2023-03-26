@@ -5,6 +5,13 @@
 })(this, (function (exports) { 'use strict';
 
     /**
+     * Synchronously parse an already loaded .msh file buffer.
+     */
+    function parseMsh(data) {
+        data = data.buffer ? new Uint8Array(data).buffer : data;
+        return new _MSHMesh(data);
+    }
+    /**
      * Parse .msh file asynchronously (returns Promise).
      */
     function loadMshAsync(urlOrFile) {
@@ -51,13 +58,6 @@
             };
             reader_1.readAsArrayBuffer(urlOrFile);
         }
-    }
-    /**
-     * Synchronously parse an already loaded .msh file buffer.
-     */
-    function parseMsh(data) {
-        data = data.buffer ? new Uint8Array(data).buffer : data;
-        return new _MSHMesh(data);
     }
     // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
     // Define the MSHMesh class.

@@ -1,4 +1,11 @@
 /**
+ * Synchronously parse an already loaded .msh file buffer.
+ */
+export function parseMsh(data: Buffer | ArrayBuffer): MSHMesh {
+	data = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
+	return new _MSHMesh(data);
+}
+/**
  * Parse .msh file asynchronously (returns Promise).
  */
 export function loadMshAsync(urlOrFile: string | File) {
@@ -44,14 +51,6 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 		}
 		reader.readAsArrayBuffer(urlOrFile);
 	}
-}
-
-/**
- * Synchronously parse an already loaded .msh file buffer.
- */
-export function parseMsh(data: Buffer | ArrayBuffer) {
-	data = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
-	return new _MSHMesh(data) as MSHMesh;
 }
 
 // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
