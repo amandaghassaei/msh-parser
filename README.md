@@ -130,7 +130,7 @@ This work is licensed under an [MIT License](https://github.com/amandaghassaei/m
 
 ## Related Libraries
 
-- [stl-parser](https://github.com/amandaghassaei/stl-parser) - binary and ASCII .stl file parser
+- [@amandaghassaei/stl-parser](https://github.com/amandaghassaei/stl-parser) - binary and ASCII .stl file parser
 
 
 ## Development
