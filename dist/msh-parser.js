@@ -32,7 +32,7 @@
                 request_1.open('GET', urlOrFile, true);
                 request_1.responseType = 'arraybuffer';
                 request_1.onload = function () {
-                    var mesh = new _MSHMesh(request_1.response);
+                    var mesh = parseMsh(request_1.response);
                     // Call the callback function with the parsed mesh data.
                     callback(mesh);
                 };
@@ -42,7 +42,7 @@
                 // Call the callback function with the parsed mesh data.
                 import('fs').then(function (fs) {
                     var buffer = fs.readFileSync(urlOrFile);
-                    callback(new _MSHMesh(buffer));
+                    callback(parseMsh(buffer));
                 });
             }
         }
@@ -51,7 +51,7 @@
             // Load the file with FileReader.
             var reader_1 = new FileReader();
             reader_1.onload = function () {
-                var mesh = new _MSHMesh(reader_1.result);
+                var mesh = parseMsh(reader_1.result);
                 // Call the callback function with the parsed mesh data.
                 callback(mesh);
             };

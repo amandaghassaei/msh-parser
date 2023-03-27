@@ -27,7 +27,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 			request.open('GET', urlOrFile, true);
 			request.responseType = 'arraybuffer';
 			request.onload = () => {
-				const mesh = new _MSHMesh(request.response as ArrayBuffer);
+				const mesh = parseMsh(request.response as ArrayBuffer);
 				// Call the callback function with the parsed mesh data.
 				callback(mesh);
 			};
@@ -36,7 +36,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 			// Call the callback function with the parsed mesh data.
 			import('fs').then((fs) => {
 				const buffer = fs.readFileSync(urlOrFile);
-				callback(new _MSHMesh(buffer));
+				callback(parseMsh(buffer));
 			});
 		}
 	} else {
@@ -44,7 +44,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 		// Load the file with FileReader.
 		const reader = new FileReader();
 		reader.onload = () => {
-			const mesh = new _MSHMesh(reader.result as ArrayBuffer);
+			const mesh = parseMsh(reader.result as ArrayBuffer);
 			// Call the callback function with the parsed mesh data.
 			callback(mesh);
 		}
