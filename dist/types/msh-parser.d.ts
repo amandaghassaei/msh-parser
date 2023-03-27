@@ -4,11 +4,11 @@
  */
 export declare function parseMsh(data: Buffer | ArrayBuffer): MSHMesh;
 /**
- * Parse .msh file asynchronously (returns Promise).
+ * Load and parse .msh asynchronously from the specified url or File object (returns Promise).
  */
 export declare function loadMshAsync(urlOrFile: string | File): Promise<MSHMesh>;
 /**
- * Load and parse the .msh file at the specified file path or File object.
+ * Load and parse .msh from the specified url or File object.
  */
 export declare function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => void): void;
 export type MSHMesh = {

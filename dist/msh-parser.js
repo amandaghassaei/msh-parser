@@ -12,7 +12,7 @@
         return new _MSHMesh(data);
     }
     /**
-     * Parse .msh file asynchronously (returns Promise).
+     * Load and parse .msh asynchronously from the specified url or File object (returns Promise).
      */
     function loadMshAsync(urlOrFile) {
         return new Promise(function (resolve) {
@@ -22,7 +22,7 @@
         });
     }
     /**
-     * Load and parse the .msh file at the specified file path or File object.
+     * Load and parse .msh from the specified url or File object.
      */
     function loadMsh(urlOrFile, callback) {
         if (typeof urlOrFile === 'string') {
@@ -59,7 +59,7 @@
             reader_1.readAsArrayBuffer(urlOrFile);
         }
     }
-    // https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
+    // Based on: https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
     // Define the MSHMesh class.
     var _MSHMesh = /** @class */ (function () {
         function _MSHMesh(arrayBuffer) {

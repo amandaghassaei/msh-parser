@@ -6,7 +6,7 @@ export function parseMsh(data: Buffer | ArrayBuffer): MSHMesh {
 	return new _MSHMesh(data);
 }
 /**
- * Parse .msh file asynchronously (returns Promise).
+ * Load and parse .msh asynchronously from the specified url or File object (returns Promise).
  */
 export function loadMshAsync(urlOrFile: string | File) {
 	return new Promise<MSHMesh>((resolve) => {
@@ -17,7 +17,7 @@ export function loadMshAsync(urlOrFile: string | File) {
 }
 
 /**
- * Load and parse the .msh file at the specified file path or File object.
+ * Load and parse .msh from the specified url or File object.
  */
 export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => void) {
 	if (typeof urlOrFile === 'string') {
@@ -53,7 +53,22 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 	}
 }
 
-// https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
+// Export just the type, keep the class private.
+export type MSHMesh = {
+	readonly nodes: Float64Array | Float32Array;
+	readonly elements: number[][];
+	readonly edges: Uint32Array;
+	readonly exteriorEdges: Uint32Array;
+	readonly exteriorFaces: number[][];
+	readonly elementVolumes: Float32Array;
+	readonly nodalVolumes: Float32Array;
+	readonly isTetMesh: boolean;
+	readonly numExteriorNodes: number;
+	readonly boundingBox: { min: number[], max: number[] };
+	scaleNodesToUnitBoundingBox: () => MSHMesh;
+}
+
+// Based on: https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
 // Define the MSHMesh class.
 class _MSHMesh {
 	// TextDecoder instance to decode the header as UTF-8.
@@ -535,19 +550,4 @@ class _MSHMesh {
 		delete this._elementVolumes;
 		return this;
 	}
-}
-
-// Export just the type, keep the class private.
-export type MSHMesh = {
-	readonly nodes: Float64Array | Float32Array;
-	readonly elements: number[][];
-	readonly edges: Uint32Array;
-	readonly exteriorEdges: Uint32Array;
-	readonly exteriorFaces: number[][];
-	readonly elementVolumes: Float32Array;
-	readonly nodalVolumes: Float32Array;
-	readonly isTetMesh: boolean;
-	readonly numExteriorNodes: number;
-	readonly boundingBox: { min: number[], max: number[] };
-	scaleNodesToUnitBoundingBox: () => MSHMesh;
 }
