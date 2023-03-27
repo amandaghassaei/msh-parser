@@ -8,7 +8,6 @@
      * Synchronously parse an already loaded .msh file buffer.
      */
     function parseMsh(data) {
-        data = data.buffer ? new Uint8Array(data).buffer : data;
         return new _MSHMesh(data);
     }
     /**
@@ -43,7 +42,7 @@
                 // Call the callback function with the parsed mesh data.
                 import('fs').then(function (fs) {
                     var buffer = fs.readFileSync(urlOrFile);
-                    callback(new _MSHMesh(new Uint8Array(buffer).buffer));
+                    callback(new _MSHMesh(buffer));
                 });
             }
         }
@@ -62,9 +61,10 @@
     // Based on: https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
     // Define the MSHMesh class.
     var _MSHMesh = /** @class */ (function () {
-        function _MSHMesh(arrayBuffer) {
+        function _MSHMesh(data) {
             // Header offset.
             this._offset = 0;
+            var arrayBuffer = data.buffer ? new Uint8Array(data).buffer : data;
             var dataView = new DataView(arrayBuffer);
             // Create a Uint8Array that references the same underlying memory as the DataView.
             var uint8Array = new Uint8Array(dataView.buffer);

@@ -2,7 +2,6 @@
  * Synchronously parse an already loaded .msh file buffer.
  */
 export function parseMsh(data: Buffer | ArrayBuffer): MSHMesh {
-	data = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
 	return new _MSHMesh(data);
 }
 /**
@@ -37,7 +36,7 @@ export function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 			// Call the callback function with the parsed mesh data.
 			import('fs').then((fs) => {
 				const buffer = fs.readFileSync(urlOrFile);
-				callback(new _MSHMesh(new Uint8Array(buffer).buffer));
+				callback(new _MSHMesh(buffer));
 			});
 		}
 	} else {
@@ -87,7 +86,8 @@ class _MSHMesh {
 	private readonly _exteriorFaces?: number[][];
 	private readonly _numExteriorNodes?: number;
 
-	constructor(arrayBuffer: ArrayBuffer) {
+	constructor(data: ArrayBuffer | Buffer) {
+		const arrayBuffer = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
 		const dataView = new DataView(arrayBuffer);
 		// Create a Uint8Array that references the same underlying memory as the DataView.
 		const uint8Array = new Uint8Array(dataView.buffer);
