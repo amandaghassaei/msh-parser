@@ -1,6 +1,6 @@
 {
   "name": "msh-parser",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Finite element .msh format parser, written in TypeScript",
   "main": "dist/msh-parser.js",
   "types": "dist/types/msh-parser.d.ts",
