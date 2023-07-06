@@ -54,6 +54,8 @@ const { parseMsh, loadMsh, loadMshAsync } = MSHParserLib;
 
 ## Use
 
+Full API documentation in [docs](https://github.com/amandaghassaei/msh-parser/blob/main/docs/).
+
 ```js
 // Load and parse the .msh file using the specified file path.
 loadMsh('./bunny.msh', (mesh) => {
