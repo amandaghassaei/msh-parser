@@ -1,18 +1,24 @@
 {
-  "compilerOptions": {
-    "noImplicitAny": true,
-	"module": "esnext",
-    "target": "es5",
-    "allowJs": false,
-    "lib": ["es2015", "dom"],
-    "strict": true,
-    "sourceMap": true,
-    "outDir": "./dist/",
-    "declaration": true,
-    "declarationDir": "types",
-    "typeRoots": ["node_modules/@types"]
-  },
-  "include": [
-    "src"
-  ]
+	"compilerOptions": {
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"module": "esnext",
+		"target": "es6",
+		"allowJs": false,
+		"strict": true,
+		"sourceMap": true,
+		"outDir": "./dist/",
+		"declaration": true,
+		"typeRoots": ["node_modules/@types"]
+	},
+	"include": [
+		"src"
+	],
+	"ts-node": {
+		"compilerOptions": {
+			"module": "esnext",
+			"moduleResolution": "node",
+			"allowSyntheticDefaultImports": true
+		}
+	}
 }

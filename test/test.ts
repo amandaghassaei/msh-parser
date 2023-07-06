@@ -1,7 +1,7 @@
-import { use, expect, assert } from 'chai';
+import { use, expect } from 'chai';
 import { readFileSync } from 'fs';
-import { loadMsh, loadMshAsync, parseMsh } from '../';
-const chaiAlmost = require('chai-almost');
+import { loadMsh, loadMshAsync, parseMsh } from '../src/msh-parser';
+import chaiAlmost from 'chai-almost';
 use(chaiAlmost(0.1));
 
 const stanfordBunny = readFileSync('./test/msh/stanford_bunny.msh');
@@ -256,6 +256,26 @@ describe('mesh-parser', () => {
 				expect(min).to.deep.equal([-0.5, -0.21957705870487879, -0.25000942732719283]);
 				expect(max).to.deep.equal([0.5, 0.21957705870487879, 0.25000942732719283]);
 			}
+		});
+		it('throws errors for invalid setters', () => {
+			const msh = parseMsh(stanfordBunny);
+			// @ts-ignore
+			expect(() => {msh.nodes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No nodes setter.');
+			// @ts-ignore
+			expect(() => {msh.edges = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No edges setter.');
+			// @ts-ignore
+			expect(() => {msh.exteriorEdges = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No exteriorEdges setter.');
+			// @ts-ignore
+			expect(() => {msh.exteriorFaces = [0, 0, 0, 0, 0, 0, 0, 0, 0]}).to.throw(Error, 'msh-parser: No exteriorFaces setter.');
+			// @ts-ignore
+			expect(() => {msh.elementVolumes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No elementVolumes setter.');
+			// @ts-ignore
+			expect(() => {msh.nodalVolumes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No nodalVolumes setter.');
+			// @ts-ignore
+			expect(() => {msh.numExteriorNodes = 20}).to.throw(Error, 'msh-parser: No numExteriorNodes setter.');
+			// @ts-ignore
+			expect(() => {msh.boundingBox = { min: [0, 0, 0], max: [24, 24, 24] }}).to.throw(Error, 'msh-parser: No boundingBox setter.');
+		
 		});
 	});
 });

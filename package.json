@@ -3,7 +3,8 @@
   "version": "1.2.9",
   "description": "Finite element .msh format parser, written in TypeScript.",
   "main": "dist/msh-parser.js",
-  "types": "dist/types/msh-parser.d.ts",
+  "types": "dist/msh-parser.d.ts",
+  "type": "module",
   "keywords": [
     "msh",
     ".msh",
@@ -15,12 +16,16 @@
     "3d",
     "mesh",
     "FEM",
+    "FEA",
     "gmsh",
     "typescript"
   ],
   "scripts": {
-    "build": "rollup --config",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'test/*.ts'"
+    "build": "rollup --config && tsc && npm run docs && npm run test-with-coverage && npm run make-coverage-badge",
+    "docs": "typedoc --options ./typedoc.json",
+    "test": "mocha 'test/**/*.ts'",
+    "test-with-coverage": "c8 mocha 'test/**/*.ts'",
+    "make-coverage-badge": "c8 --reporter=json-summary mocha 'test/**/*.ts' && coverage-badge-creator"
   },
   "files": [
     "dist",
@@ -37,17 +42,23 @@
     "url": "https://github.com/amandaghassaei/msh-parser/issues"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-typescript": "^10.0.1",
     "@types/chai": "^4.3.4",
     "@types/chai-almost": "^1.0.1",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.11",
+    "c8": "^8.0.0",
     "chai": "^4.3.7",
     "chai-almost": "^1.0.1",
+    "coverage-badge-creator": "^1.0.17",
     "mocha": "^10.1.0",
     "rollup": "^3.6.0",
     "ts-node": "^10.9.1",
     "tslib": "^2.4.1",
+    "typedoc": "^0.24.8",
+    "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "^4.9.3"
   }
 }

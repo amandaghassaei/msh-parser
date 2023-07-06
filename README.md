@@ -5,6 +5,7 @@
 [![Build Size](https://img.shields.io/bundlephobia/min/msh-parser)](https://bundlephobia.com/result?p=msh-parser)
 [![NPM Downloads](https://img.shields.io/npm/dw/msh-parser)](https://www.npmtrends.com/msh-parser)
 [![License](https://img.shields.io/npm/l/msh-parser)](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt)
+![](https://img.shields.io/badge/Coverage-77%25-5A7302.svg?prefix=$coverage$)
 
 Finite element .msh format loader and parser – unit tested and written in TypeScript.
 
@@ -32,12 +33,12 @@ import { parseMsh, loadMsh, loadMshAsync } from 'msh-parser';
 
 ### Import into HTML
 
-Import [msh-parser.js](https://github.com/amandaghassaei/msh-parser/blob/main/dist/msh-parser.js) directly into your html:
+Import [bundle/msh-parser.min.js](https://github.com/amandaghassaei/msh-parser/blob/main/dist/msh-parser.min.js) directly into your html:
 
 ```html
 <html>
   <head>
-    <script src="msh-parser.js"></script>
+    <script src="msh-parser.min.js"></script>
   </head>
   <body>
   </body>
