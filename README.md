@@ -164,4 +164,5 @@ npm run test
 
 ### TODO:
 
-Test with sample files from https://people.sc.fsu.edu/~jburkardt/data/msh/msh.html
+- Test with sample files from https://people.sc.fsu.edu/~jburkardt/data/msh/msh.html
+- Add double precision msh file in tests
