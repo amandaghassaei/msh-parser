@@ -1,3 +1,0 @@
-{"total": {"lines":{"total":553,"covered":496,"skipped":0,"pct":89.69},"statements":{"total":553,"covered":496,"skipped":0,"pct":89.69},"functions":{"total":32,"covered":21,"skipped":0,"pct":65.62},"branches":{"total":98,"covered":63,"skipped":0,"pct":64.28},"branchesTrue":{"total":0,"covered":0,"skipped":0,"pct":"Unknown"}}
-,"/Users/amandaghassaei/Projects/msh-parser/src/msh-parser.ts": {"lines":{"total":553,"covered":496,"skipped":0,"pct":89.69},"functions":{"total":32,"covered":21,"skipped":0,"pct":65.62},"statements":{"total":553,"covered":496,"skipped":0,"pct":89.69},"branches":{"total":98,"covered":63,"skipped":0,"pct":64.28}}
-}

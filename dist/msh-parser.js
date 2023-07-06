@@ -1,3 +1,4 @@
+import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgesFromNestedIndexedFaces, } from '@amandaghassaei/3d-mesh-utils';
 /**
  * Synchronously parse an already loaded .msh file buffer.
  */
@@ -20,6 +21,7 @@ export function loadMshAsync(urlOrFile) {
 export function loadMsh(urlOrFile, callback) {
     if (typeof urlOrFile === 'string') {
         // Made this compatible with Node and the browser, maybe there is a better way?
+        /* c8 ignore start */
         if (typeof window !== 'undefined') {
             // Load the file with XMLHttpRequest.
             const request = new XMLHttpRequest();
@@ -31,6 +33,7 @@ export function loadMsh(urlOrFile, callback) {
                 callback(mesh);
             };
             request.send();
+            /* c8 ignore stop */
         }
         else {
             // Call the callback function with the parsed mesh data.
@@ -39,6 +42,7 @@ export function loadMsh(urlOrFile, callback) {
                 callback(parseMsh(buffer));
             });
         }
+        /* c8 ignore start */
     }
     else {
         // We only ever hit this in the browser.
@@ -51,6 +55,7 @@ export function loadMsh(urlOrFile, callback) {
         };
         reader.readAsArrayBuffer(urlOrFile);
     }
+    /* c8 ignore stop */
 }
 // Based on: https://github.com/PyMesh/PyMesh/blob/main/src/IO/MshLoader.cpp
 // Define the MSHMesh class.
@@ -63,11 +68,14 @@ class _MSHMesh {
         // Create a Uint8Array that references the same underlying memory as the DataView.
         const uint8Array = new Uint8Array(dataView.buffer);
         // Parse header.
+        /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$MeshFormat')
             _MSHMesh._throwInvalidFormatError();
         const [version, type, dataSize] = this._parseNextLineAsUTF8(uint8Array).split(' ').map(el => parseFloat(el));
+        /* c8 ignore next */
         if (isNaN(version) || isNaN(type) || isNaN(dataSize))
             _MSHMesh._throwInvalidFormatError();
+        /* c8 ignore next */
         if (dataSize !== 8 && dataSize !== 4)
             throw new Error(`msh-parser: This library currently parses .msh files with data size === 8 or 4.  Current file has data size = ${dataSize}. Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.`);
         const doublePrecision = dataSize === 8;
@@ -82,9 +90,11 @@ class _MSHMesh {
             }
             this._offset += 4;
         }
+        /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$EndMeshFormat')
             _MSHMesh._throwInvalidFormatError();
         // Read the number of nodes.
+        /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$Nodes')
             _MSHMesh._throwInvalidFormatError();
         const numNodes = parseInt(this._parseNextLineAsUTF8(uint8Array));
@@ -107,18 +117,22 @@ class _MSHMesh {
                 // Update the current file's byte offset.
                 this._offset += 4 + 3 * dataSize;
             }
+            /* c8 ignore next 3 */
         }
         else {
             throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
         }
         // Check that all nodes are finite.
         for (let i = 0; i < nodesArray.length; i++) {
+            /* c8 ignore next */
             if (!_MSHMesh._isFiniteNumber(nodesArray[i]))
                 throw new Error('msh-parser: NaN or Inf detected in input file.');
         }
+        /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$EndNodes')
             _MSHMesh._throwInvalidFormatError();
         this._nodes = nodesArray;
+        /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$Elements')
             _MSHMesh._throwInvalidFormatError();
         // Read the number of elements.
@@ -139,6 +153,7 @@ class _MSHMesh {
                 const elementType = dataView.getInt32(this._offset, isLE);
                 const elementNumElements = dataView.getInt32(this._offset + 4, isLE);
                 const elementNumTags = dataView.getInt32(this._offset + 8, isLE);
+                /* c8 ignore next */
                 if (elementType !== 4)
                     isTetMesh = false;
                 const numElementNodes = _MSHMesh._numNodesPerElementType(elementType);
@@ -146,11 +161,13 @@ class _MSHMesh {
                 this._offset += 12;
                 for (let i = 0; i < elementNumElements; i++) {
                     const index = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
+                    /* c8 ignore next */
                     if (index < 0 || index >= numElements)
                         throw new Error(`msh-parser: Invalid element index ${index} for numElements === ${numElements}.`);
                     this._offset += 4;
+                    /* c8 ignore start */
                     for (let j = 0; j < elementNumTags; j++) {
-                        const tag = dataView.getInt32(this._offset, isLE);
+                        // const tag = dataView.getInt32(this._offset, isLE);
                         if (!tagWarning) {
                             tagWarning = true;
                             console.warn('msh-parser: This library does not currently parse element tags.');
@@ -158,11 +175,14 @@ class _MSHMesh {
                         // Update the current file's byte offset.
                         this._offset += 4;
                     }
+                    /* c8 ignore stop */
                     const nodeIndices = elementsArray[index];
                     for (let j = 0; j < numElementNodes; j++) {
                         const nodeIndex = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
+                        /* c8 ignore next */
                         if (!_MSHMesh._isFiniteNumber(nodeIndex))
                             throw new Error('msh-parser: NaN or Inf detected in input file.');
+                        /* c8 ignore next */
                         if (nodeIndex < 0 || nodeIndex >= numNodes)
                             throw new Error(`msh-parser: Invalid node index ${nodeIndex} for numNodes === ${numNodes}.`);
                         nodeIndices.push(nodeIndex);
@@ -172,10 +192,12 @@ class _MSHMesh {
                 }
                 elementIndex += elementNumElements;
             }
+            /* c8 ignore next 3 */
         }
         else {
             throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
         }
+        /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements')
             _MSHMesh._throwInvalidFormatError();
         this.isTetMesh = isTetMesh;
@@ -190,6 +212,7 @@ class _MSHMesh {
                     const key = _MSHMesh._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
                     if (hash[key]) {
                         hash[key].push(indices[(j + 3) % indices.length]);
+                        /* c8 ignore next 3 */
                         if (hash[key].length > 2) {
                             throw new Error(`msh-parser: Hit face ${key} more than twice.`);
                         }
@@ -275,6 +298,7 @@ class _MSHMesh {
         // Return the decoded string.
         return text;
     }
+    /* c8 ignore next 3 */
     static _throwInvalidFormatError() {
         throw new Error('msh-parser: Invalid .msh file format.');
     }
@@ -291,6 +315,7 @@ class _MSHMesh {
                 return 4; // Tetrahedron
             case 5:
                 return 8; // Hexahedron
+            /* c8 ignore next 2 */
             default:
                 throw new Error(`msh-parser: Element type ${elementType} is not supported yet.`);
         }
@@ -326,33 +351,31 @@ class _MSHMesh {
     get edges() {
         if (!this._edges) {
             const { elements, isTetMesh } = this;
+            /* c8 ignore next */
             if (!isTetMesh)
                 throw new Error(`msh-parser: MSHMesh.edges is not defined for non-tet meshes.`);
             // Calc all edges in mesh, use hash table to cover each edge only once.
-            const hash = {};
+            const edgesHash = {};
+            const edges = [];
             for (let i = 0, numElements = elements.length; i < numElements; i++) {
                 const elementIndices = elements[i];
                 // For tetrahedra, create an edge between each pair of nodes in element.
                 const numNodes = elementIndices.length;
                 for (let j = 0; j < numNodes; j++) {
                     for (let k = j + 1; k < numNodes; k++) {
-                        if (j === k)
-                            continue;
                         const a = elementIndices[j];
                         const b = elementIndices[k];
                         const key = `${Math.min(a, b)},${Math.max(a, b)}`;
-                        hash[key] = true;
+                        // Only add each edge once.
+                        if (edgesHash[key] === undefined) {
+                            edgesHash[key] = true;
+                            edges.push(a, b);
+                        }
                     }
                 }
             }
-            const keys = Object.keys(hash);
-            const edgesArray = new Uint32Array(keys.length * 2);
-            for (let i = 0, length = keys.length; i < length; i++) {
-                const indices = keys[i].split(',');
-                edgesArray[2 * i] = parseInt(indices[0]);
-                edgesArray[2 * i + 1] = parseInt(indices[1]);
-            }
-            this._edges = edgesArray;
+            this._edges = new Uint32Array(edges);
+            ;
         }
         return this._edges;
     }
@@ -362,33 +385,11 @@ class _MSHMesh {
     get exteriorEdges() {
         if (!this._exteriorEdges) {
             const { isTetMesh, _exteriorFaces } = this;
+            /* c8 ignore next */
             if (!isTetMesh)
                 throw new Error(`msh-parser: MSHMesh.exteriorEdges is not defined for non-tet meshes.`);
-            // Calc all exterior edges in mesh, use hash table to cover each edge only once.
-            const hash = {};
-            for (let i = 0, numFaces = _exteriorFaces.length; i < numFaces; i++) {
-                const faceIndices = _exteriorFaces[i];
-                // For triangles, create an edge between each pair of indices in face.
-                const numNodes = faceIndices.length;
-                for (let j = 0; j < numNodes; j++) {
-                    for (let k = j + 1; k < numNodes; k++) {
-                        if (j === k)
-                            continue;
-                        const a = faceIndices[j];
-                        const b = faceIndices[k];
-                        const key = `${Math.min(a, b)},${Math.max(a, b)}`;
-                        hash[key] = true;
-                    }
-                }
-            }
-            const keys = Object.keys(hash);
-            const edgesArray = new Uint32Array(keys.length * 2);
-            for (let i = 0, length = keys.length; i < length; i++) {
-                const indices = keys[i].split(',');
-                edgesArray[2 * i] = parseInt(indices[0]);
-                edgesArray[2 * i + 1] = parseInt(indices[1]);
-            }
-            this._exteriorEdges = edgesArray;
+            const edges = calcEdgesFromNestedIndexedFaces({ faceIndices: _exteriorFaces });
+            this._exteriorEdges = new Uint32Array(edges);
         }
         return this._exteriorEdges;
     }
@@ -396,6 +397,7 @@ class _MSHMesh {
         throw new Error(`msh-parser: No exteriorEdges setter.`);
     }
     get exteriorFaces() {
+        /* c8 ignore next */
         if (!this.isTetMesh || !this._exteriorFaces)
             throw new Error(`msh-parser: MSHMesh.exteriorFaces is not defined for non-tet meshes.`);
         return this._exteriorFaces;
@@ -417,6 +419,7 @@ class _MSHMesh {
     get elementVolumes() {
         if (!this._elementVolumes) {
             const { elements, nodes, isTetMesh } = this;
+            /* c8 ignore next */
             if (!isTetMesh)
                 throw new Error(`msh-parser: MSHMesh.elementVolumes is not defined for non-tet meshes.`);
             const numElements = elements.length;
@@ -434,6 +437,7 @@ class _MSHMesh {
     get nodalVolumes() {
         if (!this._nodalVolumes) {
             const { elements, nodes, isTetMesh } = this;
+            /* c8 ignore next */
             if (!isTetMesh)
                 throw new Error(`msh-parser: MSHMesh.nodalVolumes is not defined for non-tet meshes.`);
             const { elementVolumes } = this;
@@ -455,6 +459,7 @@ class _MSHMesh {
         throw new Error(`msh-parser: No nodalVolumes setter.`);
     }
     get numExteriorNodes() {
+        /* c8 ignore next */
         if (!this.isTetMesh || !this._numExteriorNodes)
             throw new Error(`msh-parser: MSHMesh.numExteriorNodes is not defined for non-tet meshes.`);
         return this._numExteriorNodes;
@@ -464,21 +469,9 @@ class _MSHMesh {
     }
     get boundingBox() {
         if (!this._boundingBox) {
-            const { nodes } = this;
-            const numNodes = nodes.length / 3;
-            const min = [Infinity, Infinity, Infinity];
-            const max = [-Infinity, -Infinity, -Infinity];
-            for (let i = 0; i < numNodes; i++) {
-                min[0] = Math.min(min[0], nodes[3 * i]);
-                min[1] = Math.min(min[1], nodes[3 * i + 1]);
-                min[2] = Math.min(min[2], nodes[3 * i + 2]);
-                max[0] = Math.max(max[0], nodes[3 * i]);
-                max[1] = Math.max(max[1], nodes[3 * i + 1]);
-                max[2] = Math.max(max[2], nodes[3 * i + 2]);
-            }
-            this._boundingBox = {
-                min, max,
-            };
+            this._boundingBox = calcBoundingBox({
+                vertices: this.nodes,
+            });
         }
         return this._boundingBox;
     }
@@ -489,18 +482,10 @@ class _MSHMesh {
      * Scales nodes to unit bounding box and centers around origin.
      */
     scaleNodesToUnitBoundingBox() {
-        const { nodes, boundingBox } = this;
-        const { min, max } = boundingBox;
-        const diff = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
-        const center = [(max[0] + min[0]) / 2, (max[1] + min[1]) / 2, (max[2] + min[2]) / 2];
-        const scale = Math.max(diff[0], diff[1], diff[2]);
-        const numNodes = nodes.length / 3;
-        for (let i = 0; i < numNodes; i++) {
-            for (let j = 0; j < 3; j++) {
-                // Uniform scale.
-                nodes[3 * i + j] = (nodes[3 * i + j] - center[j]) / scale;
-            }
-        }
+        scaleVerticesToUnitBoundingBox({
+            vertices: this.nodes,
+            boundingBox: this.boundingBox,
+        });
         delete this._boundingBox;
         delete this._nodalVolumes;
         delete this._elementVolumes;

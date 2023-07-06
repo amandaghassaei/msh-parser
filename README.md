@@ -5,7 +5,7 @@
 [![Build Size](https://img.shields.io/bundlephobia/min/msh-parser)](https://bundlephobia.com/result?p=msh-parser)
 [![NPM Downloads](https://img.shields.io/npm/dw/msh-parser)](https://www.npmtrends.com/msh-parser)
 [![License](https://img.shields.io/npm/l/msh-parser)](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt)
-![](https://img.shields.io/badge/Coverage-77%25-5A7302.svg?prefix=$coverage$)
+![](https://img.shields.io/badge/Coverage-98%25-83A603.svg?prefix=$coverage$)
 
 Finite element .msh format loader and parser – unit tested and written in TypeScript.
 
@@ -123,12 +123,13 @@ mesh.scaleNodesToUnitBoundingBox();
 ## Acknowledgements
 
 - This is a TypeScript port of the .msh parser from [PyMesh](https://github.com/PyMesh/PyMesh) by [Qingnan Zhou](https://research.adobe.com/person/qingnan-zhou/)
-- Some code snippet contributions by [ChatGPT](https://chat.openai.com/chat)
 
 
 ## License
 
-This work is licensed under an [MIT License](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt).
+This work is licensed under an [MIT License](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt).  It depends on the following:
+
+- [@amandaghassaei/3d-mesh-utils](https://www.npmjs.com/package/@amandaghassaei/3d-mesh-utils) - geometry processing utility functions for 3D meshes (MIT license)
 
 
 ## Related Libraries

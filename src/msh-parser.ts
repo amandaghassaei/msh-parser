@@ -1,3 +1,9 @@
+import {
+	calcBoundingBox,
+	scaleVerticesToUnitBoundingBox,
+	calcEdgesFromNestedIndexedFaces,
+} from '@amandaghassaei/3d-mesh-utils';
+
 /**
  * Synchronously parse an already loaded .msh file buffer.
  */
@@ -86,7 +92,7 @@ class _MSHMesh {
 	private _exteriorEdges?: Uint32Array;
 	private _elementVolumes?: Float32Array;
 	private _nodalVolumes?: Float32Array;
-	private _boundingBox?: { min: number[], max: number[] };
+	private _boundingBox?: { min: [number, number, number], max: [number, number, number] };
 	readonly isTetMesh: boolean;
 	private readonly _exteriorFaces?: number[][];
 	private readonly _numExteriorNodes?: number;
@@ -390,7 +396,8 @@ class _MSHMesh {
 			/* c8 ignore next */
 			if (!isTetMesh) throw new Error(`msh-parser: MSHMesh.edges is not defined for non-tet meshes.`);
 			// Calc all edges in mesh, use hash table to cover each edge only once.
-			const hash: { [key: string]: boolean } = {};
+			const edgesHash: { [key: string]: boolean } = {};
+			const edges: number[] = [];
 			for (let i = 0, numElements = elements.length; i < numElements; i++) {
 				const elementIndices = elements[i];
 				// For tetrahedra, create an edge between each pair of nodes in element.
@@ -400,18 +407,15 @@ class _MSHMesh {
 						const a = elementIndices[j];
 						const b = elementIndices[k];
 						const key = `${Math.min(a, b)},${Math.max(a, b)}`;
-						hash[key] = true;
+						// Only add each edge once.
+						if (edgesHash[key] === undefined) {
+							edgesHash[key] = true;
+							edges.push(a, b);
+						}
 					}
 				}
 			}
-			const keys = Object.keys(hash);
-			const edgesArray = new Uint32Array(keys.length * 2);
-			for (let i = 0, length = keys.length; i < length; i++) {
-				const indices = keys[i].split(',');
-				edgesArray[2 * i] = parseInt(indices[0]);
-				edgesArray[2 * i + 1] = parseInt(indices[1]);
-			}
-			this._edges = edgesArray;
+			this._edges = new Uint32Array(edges);;
 		}
 		return this._edges;
 	}
@@ -422,32 +426,11 @@ class _MSHMesh {
 
 	get exteriorEdges() {
 		if (!this._exteriorEdges) {
-			const { isTetMesh, _exteriorFaces } = this; 
+			const { isTetMesh, _exteriorFaces } = this;
 			/* c8 ignore next */
 			if (!isTetMesh) throw new Error(`msh-parser: MSHMesh.exteriorEdges is not defined for non-tet meshes.`);
-			// Calc all exterior edges in mesh, use hash table to cover each edge only once.
-			const hash: { [key: string]: boolean } = {};
-			for (let i = 0, numFaces = _exteriorFaces!.length; i < numFaces; i++) {
-				const faceIndices = _exteriorFaces![i];
-				// For triangles, create an edge between each pair of indices in face.
-				const numNodes = faceIndices.length;
-				for (let j = 0; j < numNodes; j++) {
-					for (let k = j + 1; k < numNodes; k++) {
-						const a = faceIndices[j];
-						const b = faceIndices[k];
-						const key = `${Math.min(a, b)},${Math.max(a, b)}`;
-						hash[key] = true;
-					}
-				}
-			}
-			const keys = Object.keys(hash);
-			const edgesArray = new Uint32Array(keys.length * 2);
-			for (let i = 0, length = keys.length; i < length; i++) {
-				const indices = keys[i].split(',');
-				edgesArray[2 * i] = parseInt(indices[0]);
-				edgesArray[2 * i + 1] = parseInt(indices[1]);
-			}
-			this._exteriorEdges = edgesArray;
+			const edges = calcEdgesFromNestedIndexedFaces({ faceIndices: _exteriorFaces! })
+			this._exteriorEdges = new Uint32Array(edges);
 		}
 		return this._exteriorEdges;
 	}
@@ -535,26 +518,14 @@ class _MSHMesh {
 
 	get boundingBox() {
 		if (!this._boundingBox) {
-			const { nodes } = this;
-			const numNodes = nodes.length / 3;
-			const min = [Infinity, Infinity, Infinity];
-			const max = [-Infinity, -Infinity, -Infinity];
-			for (let i = 0; i < numNodes; i++) {
-				min[0] = Math.min(min[0], nodes[3 * i]);
-				min[1] = Math.min(min[1], nodes[3 * i + 1]);
-				min[2] = Math.min(min[2], nodes[3 * i + 2]);
-				max[0] = Math.max(max[0], nodes[3 * i]);
-				max[1] = Math.max(max[1], nodes[3 * i + 1]);
-				max[2] = Math.max(max[2], nodes[3 * i + 2]);
-			}
-			this._boundingBox = {
-				min, max,
-			};
+			this._boundingBox = calcBoundingBox({
+				vertices: this.nodes,
+			});
 		}
 		return this._boundingBox;
 	}
 
-	set boundingBox(boundingBox: { min: number[], max: number[] }) {
+	set boundingBox(boundingBox: { min: [number, number, number], max: [number, number, number] }) {
 		throw new Error(`msh-parser: No boundingBox setter.`);
 	}
 
@@ -562,18 +533,10 @@ class _MSHMesh {
 	 * Scales nodes to unit bounding box and centers around origin.
 	 */
 	scaleNodesToUnitBoundingBox() {
-		const { nodes, boundingBox } = this;
-		const { min, max } = boundingBox;
-		const diff = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
-		const center = [(max[0] + min[0]) / 2, (max[1] + min[1]) / 2, (max[2] + min[2]) / 2];
-		const scale = Math.max(diff[0], diff[1], diff[2]);
-		const numNodes = nodes.length / 3;
-		for (let i = 0; i < numNodes; i++) {
-			for (let j = 0; j < 3; j++) {
-				// Uniform scale.
-				nodes[3 * i + j] = (nodes[3 * i + j] - center[j]) / scale;
-			}
-		}
+		scaleVerticesToUnitBoundingBox({
+			vertices: this.nodes,
+			boundingBox: this.boundingBox,
+		});
 		delete this._boundingBox;
 		delete this._nodalVolumes;
 		delete this._elementVolumes;
