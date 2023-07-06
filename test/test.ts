@@ -1,6 +1,6 @@
 import { use, expect } from 'chai';
 import { readFileSync } from 'fs';
-import { loadMsh, loadMshAsync, parseMsh } from '../src/msh-parser';
+import { loadMSH, loadMSHAsync, parseMSH } from '../src/msh-parser';
 import chaiAlmost from 'chai-almost';
 use(chaiAlmost(0.1));
 
@@ -8,9 +8,9 @@ const stanfordBunny = readFileSync('./test/msh/stanford_bunny.msh');
 const wingnut = readFileSync('./test/msh/wingnut.msh');
 
 describe('mesh-parser', () => {
-	describe('loadMsh', () => {
+	describe('loadMSH', () => {
 		it('loads stanford_bunny.msh', () => {
-			loadMsh('./test/msh/stanford_bunny.msh', (mesh) => {
+			loadMSH('./test/msh/stanford_bunny.msh', (mesh) => {
 				const {
 					nodes,
 					elements,
@@ -33,7 +33,7 @@ describe('mesh-parser', () => {
 			});
 		});
 		it('loads wingnut.msh', () => {
-			loadMsh('./test/msh/wingnut.msh', (mesh) => {
+			loadMSH('./test/msh/wingnut.msh', (mesh) => {
 				const {
 					nodes,
 					elements,
@@ -56,9 +56,9 @@ describe('mesh-parser', () => {
 			});
 		});
 	});
-	describe('loadMshAsync', () => {
+	describe('loadMSHAsync', () => {
 		it('loads stanford_bunny.msh', async () => {
-			const mesh = await loadMshAsync('./test/msh/stanford_bunny.msh');
+			const mesh = await loadMSHAsync('./test/msh/stanford_bunny.msh');
 			const {
 				nodes,
 				elements,
@@ -80,7 +80,7 @@ describe('mesh-parser', () => {
 			expect(numExteriorNodes).to.equal(7014);
 		});
 		it('loads wingnut.msh', async () => {
-			const mesh = await loadMshAsync('./test/msh/wingnut.msh');
+			const mesh = await loadMSHAsync('./test/msh/wingnut.msh');
 			const {
 				nodes,
 				elements,
@@ -102,9 +102,9 @@ describe('mesh-parser', () => {
 			expect(numExteriorNodes).to.equal(4373);
 		});
 	});
-	describe('parseMsh', () => {
+	describe('parseMSH', () => {
 		it('parses stanford_bunny.msh', () => {
-			const mesh = parseMsh(stanfordBunny);
+			const mesh = parseMSH(stanfordBunny);
 			const {
 				nodes,
 				elements,
@@ -126,7 +126,7 @@ describe('mesh-parser', () => {
 			expect(numExteriorNodes).to.equal(7014);
 		});
 		it('parses wingnut.msh', () => {
-			const mesh = parseMsh(wingnut);
+			const mesh = parseMSH(wingnut);
 			const {
 				nodes,
 				elements,
@@ -150,8 +150,8 @@ describe('mesh-parser', () => {
 	});
 	describe('helper functions', () => {
 		it('calculates edges', () => {
-			expect(parseMsh(stanfordBunny).edges.length).to.equal(85470);
-			expect(parseMsh(wingnut).edges.length).to.equal(52634);
+			expect(parseMSH(stanfordBunny).edges.length).to.equal(85470);
+			expect(parseMSH(wingnut).edges.length).to.equal(52634);
 			// // Should only work for tet meshes.
 			// // @ts-ignore
 			// assert.throws(() => { MSHParser.calculateEdges({}); },
@@ -159,7 +159,7 @@ describe('mesh-parser', () => {
 		});
 		it('calculates exterior edges', () => {
 			{
-				const mesh = parseMsh(stanfordBunny);
+				const mesh = parseMSH(stanfordBunny);
 				const { numExteriorNodes, exteriorEdges } = mesh;
 				expect(exteriorEdges.length).to.equal(42072);
 				for (let i = 0; i < exteriorEdges.length; i++) {
@@ -167,7 +167,7 @@ describe('mesh-parser', () => {
 				}
 			}
 			{
-				const mesh = parseMsh(wingnut);
+				const mesh = parseMSH(wingnut);
 				const { numExteriorNodes, exteriorEdges } = mesh;
 				expect(exteriorEdges.length).to.equal(26238);
 				for (let i = 0; i < exteriorEdges.length; i++) {
@@ -180,7 +180,7 @@ describe('mesh-parser', () => {
 			// 		'MSHParser.calculateExteriorEdges() is not defined for non-tet meshes.');
 		});
 		it('calculates element volumes', () => {
-			const mesh = parseMsh(stanfordBunny);
+			const mesh = parseMSH(stanfordBunny);
 			const { elementVolumes } = mesh;
 			const results = [
 				0.8946202993392944,
@@ -204,7 +204,7 @@ describe('mesh-parser', () => {
 			// 		'MSHParser.calculateElementVolumes() is not defined for non-tet meshes.');
 		});
 		it('calculates nodal volumes', () => {
-			const mesh = parseMsh(stanfordBunny);
+			const mesh = parseMSH(stanfordBunny);
 			const { elementVolumes, nodalVolumes } = mesh;
 			const results = [
 				4.465956211090088,
@@ -231,13 +231,13 @@ describe('mesh-parser', () => {
 		});
 		it('calculates bounding box', () => {
 			{
-				const { boundingBox } = parseMsh(stanfordBunny);
+				const { boundingBox } = parseMSH(stanfordBunny);
 				const { min, max } = boundingBox;
 				expect(min).to.deep.equal([-43.133523557360256, -33.408036848762215, -0.0010786724840932279]);
 				expect(max).to.deep.equal([43.138475101021584, 33.3942439679999, 83.69444330381762]);
 			}
 			{
-				const { boundingBox } = parseMsh(wingnut);
+				const { boundingBox } = parseMSH(wingnut);
 				const { min, max } = boundingBox;
 				expect(min).to.deep.equal([-1.2498986197785313, -0.5488943641668116, -4.5772923088512436e-8]);
 				expect(max).to.deep.equal([1.2498814910148646, 0.5488943641071283, 1.2499371421138041]);
@@ -245,20 +245,20 @@ describe('mesh-parser', () => {
 		});
 		it('scales the node positions to unit bounding box', () => {
 			{
-				const { boundingBox } = parseMsh(stanfordBunny).scaleNodesToUnitBoundingBox();
+				const { boundingBox } = parseMSH(stanfordBunny).scaleNodesToUnitBoundingBox();
 				const { min, max } = boundingBox;
 				expect(min).to.deep.equal([-0.5, -0.3871608508879252, -0.485067711875539]);
 				expect(max).to.deep.equal([0.5, 0.3871608508879252, 0.4850677118755391]);
 			}
 			{
-				const { boundingBox } = parseMsh(wingnut).scaleNodesToUnitBoundingBox();
+				const { boundingBox } = parseMSH(wingnut).scaleNodesToUnitBoundingBox();
 				const { min, max } = boundingBox;
 				expect(min).to.deep.equal([-0.5, -0.21957705870487879, -0.25000942732719283]);
 				expect(max).to.deep.equal([0.5, 0.21957705870487879, 0.25000942732719283]);
 			}
 		});
 		it('throws errors for invalid setters', () => {
-			const msh = parseMsh(stanfordBunny);
+			const msh = parseMSH(stanfordBunny);
 			// @ts-ignore
 			expect(() => {msh.nodes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No nodes setter.');
 			// @ts-ignore
@@ -274,8 +274,7 @@ describe('mesh-parser', () => {
 			// @ts-ignore
 			expect(() => {msh.numExteriorNodes = 20}).to.throw(Error, 'msh-parser: No numExteriorNodes setter.');
 			// @ts-ignore
-			expect(() => {msh.boundingBox = { min: [0, 0, 0], max: [24, 24, 24] }}).to.throw(Error, 'msh-parser: No boundingBox setter.');
-		
+			expect(() => {msh.boundingBox = { min: [0, 0, 0], max: [24, 24, 24] }}).to.throw(Error, 'msh-parser: No boundingBox setter.')
 		});
 	});
 });

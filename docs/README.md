@@ -10,9 +10,9 @@ msh-parser
 
 ### Functions
 
-- [parseMsh](README.md#parsemsh)
-- [loadMshAsync](README.md#loadmshasync)
-- [loadMsh](README.md#loadmsh)
+- [parseMSH](README.md#parsemsh)
+- [loadMSHAsync](README.md#loadmshasync)
+- [loadMSH](README.md#loadmsh)
 
 ## Type Aliases
 
@@ -40,9 +40,9 @@ msh-parser
 
 ## Functions
 
-### parseMsh
+### parseMSH
 
-▸ **parseMsh**(`data`): [`MSHMesh`](README.md#mshmesh)
+▸ **parseMSH**(`data`): [`MSHMesh`](README.md#mshmesh)
 
 Synchronously parse an already loaded .msh file buffer.
 
@@ -58,9 +58,9 @@ Synchronously parse an already loaded .msh file buffer.
 
 ___
 
-### loadMshAsync
+### loadMSHAsync
 
-▸ **loadMshAsync**(`urlOrFile`): `Promise`<[`MSHMesh`](README.md#mshmesh)\>
+▸ **loadMSHAsync**(`urlOrFile`): `Promise`<[`MSHMesh`](README.md#mshmesh)\>
 
 Load and parse .msh asynchronously from the specified url or File object (returns Promise).
 
@@ -76,9 +76,9 @@ Load and parse .msh asynchronously from the specified url or File object (return
 
 ___
 
-### loadMsh
+### loadMSH
 
-▸ **loadMsh**(`urlOrFile`, `callback`): `void`
+▸ **loadMSH**(`urlOrFile`, `callback`): `void`
 
 Load and parse .msh from the specified url or File object.
 

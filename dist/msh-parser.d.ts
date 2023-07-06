@@ -2,15 +2,15 @@
 /**
  * Synchronously parse an already loaded .msh file buffer.
  */
-export declare function parseMsh(data: Buffer | ArrayBuffer): MSHMesh;
+export declare function parseMSH(data: Buffer | ArrayBuffer): MSHMesh;
 /**
  * Load and parse .msh asynchronously from the specified url or File object (returns Promise).
  */
-export declare function loadMshAsync(urlOrFile: string | File): Promise<MSHMesh>;
+export declare function loadMSHAsync(urlOrFile: string | File): Promise<MSHMesh>;
 /**
  * Load and parse .msh from the specified url or File object.
  */
-export declare function loadMsh(urlOrFile: string | File, callback: (mesh: MSHMesh) => void): void;
+export declare function loadMSH(urlOrFile: string | File, callback: (mesh: MSHMesh) => void): void;
 export type MSHMesh = {
     readonly nodes: Float64Array | Float32Array;
     readonly elements: number[][];

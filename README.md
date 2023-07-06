@@ -28,7 +28,7 @@ npm install msh-parser
 and import into your project:
 
 ```js
-import { parseMsh, loadMsh, loadMshAsync } from 'msh-parser';
+import { parseMSH, loadMSH, loadMSHAsync } from 'msh-parser';
 ```
 
 ### Import into HTML
@@ -48,7 +48,7 @@ Import [bundle/msh-parser.min.js](https://github.com/amandaghassaei/msh-parser/b
 `MSHParserLib` will be accessible globally:
 
 ```js
-const { parseMsh, loadMsh, loadMshAsync } = MSHParserLib;
+const { parseMSH, loadMSH, loadMSHAsync } = MSHParserLib;
 ```
 
 
@@ -58,7 +58,7 @@ Full API documentation in [docs](https://github.com/amandaghassaei/msh-parser/bl
 
 ```js
 // Load and parse the .msh file using the specified file path.
-loadMsh('./bunny.msh', (mesh) => {
+loadMSH('./bunny.msh', (mesh) => {
   const {
     nodes,
     elements,
@@ -73,10 +73,10 @@ loadMsh('./bunny.msh', (mesh) => {
   } = mesh;
 });
 // Also try:
-// const mesh = loadMshAsync('./bunny.msh');
+// const mesh = loadMSHAsync('./bunny.msh');
 
 // Or parse synchronously from file buffer.
-const mesh = parseMsh(fs.readFileSync('./bunny.msh'));
+const mesh = parseMSH(fs.readFileSync('./bunny.msh'));
 ```
 
 - `nodes` is a Float32Array or Float64Array of length 3 * numNodes containing a flat list of node positions in the following order `[x0, y0, z0, x1, y1, z1, ...]`.
@@ -105,7 +105,7 @@ const mesh = parseMsh(fs.readFileSync('./bunny.msh'));
 - `boundingBox` is the min and max of the mesh's bounding box in the form: `{ min: [x, y, z], max: [x, y, z] }`.  `boundingBox` is calculated when queried and then cached.
 
 
-The mesh object returned by `parseMsh`, `loadMsh`, and `loadMshAsync` also exposes methods for modifying its geometry:
+The mesh object returned by `parseMSH`, `loadMSH`, and `loadMSHAsync` also exposes methods for modifying its geometry:
 
 ```js
 mesh.scaleNodesToUnitBoundingBox();
@@ -134,7 +134,7 @@ This work is licensed under an [MIT License](https://github.com/amandaghassaei/m
 
 ## Related Libraries
 
-- [@amandaghassaei/stl-parser](https://github.com/amandaghassaei/stl-parser) - binary and ASCII .stl file parser
+- [@amandaghassaei/stl-parser](https://www.npmjs.com/package/@amandaghassaei/stl-parser) - binary and ASCII .stl file parser
 
 
 ## Development

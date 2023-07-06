@@ -1,16 +1,16 @@
-import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgesFromNestedIndexedFaces, } from '@amandaghassaei/3d-mesh-utils';
+import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgesFromNestedIndexedFaces, makeEdgeHash, makeTriangleFaceHash, } from '@amandaghassaei/3d-mesh-utils';
 /**
  * Synchronously parse an already loaded .msh file buffer.
  */
-export function parseMsh(data) {
+export function parseMSH(data) {
     return new _MSHMesh(data);
 }
 /**
  * Load and parse .msh asynchronously from the specified url or File object (returns Promise).
  */
-export function loadMshAsync(urlOrFile) {
+export function loadMSHAsync(urlOrFile) {
     return new Promise((resolve) => {
-        loadMsh(urlOrFile, (mesh) => {
+        loadMSH(urlOrFile, (mesh) => {
             resolve(mesh);
         });
     });
@@ -18,7 +18,7 @@ export function loadMshAsync(urlOrFile) {
 /**
  * Load and parse .msh from the specified url or File object.
  */
-export function loadMsh(urlOrFile, callback) {
+export function loadMSH(urlOrFile, callback) {
     if (typeof urlOrFile === 'string') {
         // Made this compatible with Node and the browser, maybe there is a better way?
         /* c8 ignore start */
@@ -28,7 +28,7 @@ export function loadMsh(urlOrFile, callback) {
             request.open('GET', urlOrFile, true);
             request.responseType = 'arraybuffer';
             request.onload = () => {
-                const mesh = parseMsh(request.response);
+                const mesh = parseMSH(request.response);
                 // Call the callback function with the parsed mesh data.
                 callback(mesh);
             };
@@ -39,7 +39,7 @@ export function loadMsh(urlOrFile, callback) {
             // Call the callback function with the parsed mesh data.
             import('fs').then((fs) => {
                 const buffer = fs.readFileSync(urlOrFile);
-                callback(parseMsh(buffer));
+                callback(parseMSH(buffer));
             });
         }
         /* c8 ignore start */
@@ -49,7 +49,7 @@ export function loadMsh(urlOrFile, callback) {
         // Load the file with FileReader.
         const reader = new FileReader();
         reader.onload = () => {
-            const mesh = parseMsh(reader.result);
+            const mesh = parseMSH(reader.result);
             // Call the callback function with the parsed mesh data.
             callback(mesh);
         };
@@ -209,7 +209,7 @@ class _MSHMesh {
             for (let i = 0; i < numElements; i++) {
                 const indices = elementsArray[i];
                 for (let j = 0; j < indices.length; j++) {
-                    const key = _MSHMesh._makeTriHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
+                    const key = makeTriangleFaceHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
                     if (hash[key]) {
                         hash[key].push(indices[(j + 3) % indices.length]);
                         /* c8 ignore next 3 */
@@ -339,15 +339,6 @@ class _MSHMesh {
             nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
         ];
     }
-    static _makeTriHash(a, b, c) {
-        // Find the minimum and maximum of the input numbers.
-        const min = Math.min(a, b, c);
-        const max = Math.max(a, b, c);
-        // Find the remaining number.
-        const remaining = a + b + c - min - max;
-        // Join the numbers in ascending order into a string with commas.
-        return `${min},${remaining},${max}`;
-    }
     get edges() {
         if (!this._edges) {
             const { elements, isTetMesh } = this;
@@ -365,7 +356,7 @@ class _MSHMesh {
                     for (let k = j + 1; k < numNodes; k++) {
                         const a = elementIndices[j];
                         const b = elementIndices[k];
-                        const key = `${Math.min(a, b)},${Math.max(a, b)}`;
+                        const key = makeEdgeHash(a, b);
                         // Only add each edge once.
                         if (edgesHash[key] === undefined) {
                             edgesHash[key] = true;

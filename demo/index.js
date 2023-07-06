@@ -1,4 +1,4 @@
-const { loadMsh } = MSHParserLib;
+const { loadMSH } = MSHParserLib;
 
 const BUNNY_URL = '../test/msh/stanford_bunny.msh';
 const WINGNUT_URL = '../test/msh/wingnut.msh';
@@ -20,7 +20,7 @@ const PARAMS = {
 let internalMesh, externalMesh, wireframe;
 
 // Parse the .msh file using the specified file path.
-loadMsh(PARAMS.url, initThreeJSGeometry);
+loadMSH(PARAMS.url, initThreeJSGeometry);
 
 
 // UI
@@ -74,7 +74,7 @@ pane.addInput(PARAMS, 'url', {
 	},
 }).on('change', () => {
 	pane.title = PARAMS.url.split('/').pop();
-	loadMsh(PARAMS.url, initThreeJSGeometry);
+	loadMSH(PARAMS.url, initThreeJSGeometry);
 });
 pane.addButton({
 	title: 'Upload .msh (or Drop/Paste)',
@@ -432,7 +432,7 @@ function loadFile(file) {
 	const extension = getExtension(file.name);
 	if (extension !== 'msh' && extension !== 'mesh') return;
 	pane.title = file.name;
-	loadMsh(file, initThreeJSGeometry);
+	loadMSH(file, initThreeJSGeometry);
 	return true;
 }
 
