@@ -13,20 +13,20 @@ describe('mesh-parser', () => {
 			loadMSH('./test/msh/stanford_bunny.msh', (mesh) => {
 				const {
 					nodes,
-					elements,
+					elementIndices,
 					isTetMesh,
-					exteriorFaces,
+					exteriorFaceIndices,
 					numExteriorNodes,
 				} = mesh;
 				expect(nodes.constructor).to.equal(Float64Array);
 				expect(nodes.length).to.equal(25476);
-				expect(elements.length).to.equal(27232);
-				expect(elements[0].length).to.equal(4);
+				expect(elementIndices.length).to.equal(27232);
+				expect(elementIndices[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
-				expect(exteriorFaces!.length).to.equal(14024);
-				for (let i = 0; i < exteriorFaces!.length; i++) {
-					for (let j = 0; j < exteriorFaces![i].length; j++) {
-						expect(exteriorFaces![i][j]).to.be.lessThan(numExteriorNodes!);
+				expect(exteriorFaceIndices!.length).to.equal(14024);
+				for (let i = 0; i < exteriorFaceIndices!.length; i++) {
+					for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
+						expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 					}
 				}
 				expect(numExteriorNodes).to.equal(7014);
@@ -36,20 +36,20 @@ describe('mesh-parser', () => {
 			loadMSH('./test/msh/wingnut.msh', (mesh) => {
 				const {
 					nodes,
-					elements,
+					elementIndices,
 					isTetMesh,
-					exteriorFaces,
+					exteriorFaceIndices,
 					numExteriorNodes,
 				} = mesh;
 				expect(nodes.constructor).to.equal(Float64Array);
 				expect(nodes.length).to.equal(15573);
-				expect(elements.length).to.equal(16753);
-				expect(elements[0].length).to.equal(4);
+				expect(elementIndices.length).to.equal(16753);
+				expect(elementIndices[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
-				expect(exteriorFaces!.length).to.equal(8746);
-				for (let i = 0; i < exteriorFaces!.length; i++) {
-					for (let j = 0; j < exteriorFaces![i].length; j++) {
-						expect(exteriorFaces![i][j]).to.be.lessThan(numExteriorNodes!);
+				expect(exteriorFaceIndices!.length).to.equal(8746);
+				for (let i = 0; i < exteriorFaceIndices!.length; i++) {
+					for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
+						expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 					}
 				}
 				expect(numExteriorNodes).to.equal(4373);
@@ -61,20 +61,20 @@ describe('mesh-parser', () => {
 			const mesh = await loadMSHAsync('./test/msh/stanford_bunny.msh');
 			const {
 				nodes,
-				elements,
+				elementIndices,
 				isTetMesh,
-				exteriorFaces,
+				exteriorFaceIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
 			expect(nodes.length).to.equal(25476);
-			expect(elements.length).to.equal(27232);
-			expect(elements[0].length).to.equal(4);
+			expect(elementIndices.length).to.equal(27232);
+			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaces!.length).to.equal(14024);
-			for (let i = 0; i < exteriorFaces!.length; i++) {
-				for (let j = 0; j < exteriorFaces![i].length; j++) {
-					expect(exteriorFaces![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFaceIndices!.length).to.equal(14024);
+			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
+				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
+					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(7014);
@@ -83,20 +83,20 @@ describe('mesh-parser', () => {
 			const mesh = await loadMSHAsync('./test/msh/wingnut.msh');
 			const {
 				nodes,
-				elements,
+				elementIndices,
 				isTetMesh,
-				exteriorFaces,
+				exteriorFaceIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
 			expect(nodes.length).to.equal(15573);
-			expect(elements.length).to.equal(16753);
-			expect(elements[0].length).to.equal(4);
+			expect(elementIndices.length).to.equal(16753);
+			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaces!.length).to.equal(8746);
-			for (let i = 0; i < exteriorFaces!.length; i++) {
-				for (let j = 0; j < exteriorFaces![i].length; j++) {
-					expect(exteriorFaces![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFaceIndices!.length).to.equal(8746);
+			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
+				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
+					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(4373);
@@ -107,20 +107,20 @@ describe('mesh-parser', () => {
 			const mesh = parseMSH(stanfordBunny);
 			const {
 				nodes,
-				elements,
+				elementIndices,
 				isTetMesh,
-				exteriorFaces,
+				exteriorFaceIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
 			expect(nodes.length).to.equal(25476);
-			expect(elements.length).to.equal(27232);
-			expect(elements[0].length).to.equal(4);
+			expect(elementIndices.length).to.equal(27232);
+			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaces!.length).to.equal(14024);
-			for (let i = 0; i < exteriorFaces!.length; i++) {
-				for (let j = 0; j < exteriorFaces![i].length; j++) {
-					expect(exteriorFaces![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFaceIndices!.length).to.equal(14024);
+			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
+				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
+					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(7014);
@@ -129,29 +129,29 @@ describe('mesh-parser', () => {
 			const mesh = parseMSH(wingnut);
 			const {
 				nodes,
-				elements,
+				elementIndices,
 				isTetMesh,
-				exteriorFaces,
+				exteriorFaceIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
 			expect(nodes.length).to.equal(15573);
-			expect(elements.length).to.equal(16753);
-			expect(elements[0].length).to.equal(4);
+			expect(elementIndices.length).to.equal(16753);
+			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaces!.length).to.equal(8746);
-			for (let i = 0; i < exteriorFaces!.length; i++) {
-				for (let j = 0; j < exteriorFaces![i].length; j++) {
-					expect(exteriorFaces![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFaceIndices!.length).to.equal(8746);
+			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
+				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
+					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(4373);
 		});
 	});
 	describe('helper functions', () => {
-		it('calculates edges', () => {
-			expect(parseMSH(stanfordBunny).edges.length).to.equal(85470);
-			expect(parseMSH(wingnut).edges.length).to.equal(52634);
+		it('calculates edgeIndices', () => {
+			expect(parseMSH(stanfordBunny).edgeIndices.length).to.equal(85470);
+			expect(parseMSH(wingnut).edgeIndices.length).to.equal(52634);
 			// // Should only work for tet meshes.
 			// // @ts-ignore
 			// assert.throws(() => { MSHParser.calculateEdges({}); },
@@ -160,18 +160,18 @@ describe('mesh-parser', () => {
 		it('calculates exterior edges', () => {
 			{
 				const mesh = parseMSH(stanfordBunny);
-				const { numExteriorNodes, exteriorEdges } = mesh;
-				expect(exteriorEdges.length).to.equal(42072);
-				for (let i = 0; i < exteriorEdges.length; i++) {
-					expect(exteriorEdges[i]).to.be.lessThan(numExteriorNodes!);
+				const { numExteriorNodes, exteriorEdgeIndices } = mesh;
+				expect(exteriorEdgeIndices.length).to.equal(42072);
+				for (let i = 0; i < exteriorEdgeIndices.length; i++) {
+					expect(exteriorEdgeIndices[i]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			{
 				const mesh = parseMSH(wingnut);
-				const { numExteriorNodes, exteriorEdges } = mesh;
-				expect(exteriorEdges.length).to.equal(26238);
-				for (let i = 0; i < exteriorEdges.length; i++) {
-					expect(exteriorEdges[i]).to.be.lessThan(numExteriorNodes!);
+				const { numExteriorNodes, exteriorEdgeIndices } = mesh;
+				expect(exteriorEdgeIndices.length).to.equal(26238);
+				for (let i = 0; i < exteriorEdgeIndices.length; i++) {
+					expect(exteriorEdgeIndices[i]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			// // Should only work for tet meshes.
@@ -262,11 +262,11 @@ describe('mesh-parser', () => {
 			// @ts-ignore
 			expect(() => {msh.nodes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No nodes setter.');
 			// @ts-ignore
-			expect(() => {msh.edges = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No edges setter.');
+			expect(() => {msh.edgeIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No edgeIndices setter.');
 			// @ts-ignore
-			expect(() => {msh.exteriorEdges = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No exteriorEdges setter.');
+			expect(() => {msh.exteriorEdgeIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No exteriorEdgeIndices setter.');
 			// @ts-ignore
-			expect(() => {msh.exteriorFaces = [0, 0, 0, 0, 0, 0, 0, 0, 0]}).to.throw(Error, 'msh-parser: No exteriorFaces setter.');
+			expect(() => {msh.exteriorFaceIndices = [0, 0, 0, 0, 0, 0, 0, 0, 0]}).to.throw(Error, 'msh-parser: No exteriorFaceIndices setter.');
 			// @ts-ignore
 			expect(() => {msh.elementVolumes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No elementVolumes setter.');
 			// @ts-ignore

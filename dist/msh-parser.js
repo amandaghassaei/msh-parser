@@ -1,4 +1,4 @@
-import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgesFromNestedIndexedFaces, makeEdgeHash, makeTriangleFaceHash, } from '@amandaghassaei/3d-mesh-utils';
+import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgeIndicesFromNestedIndexedFaces, makeEdgeHash, makeTriangleFaceHash, } from '@amandaghassaei/3d-mesh-utils';
 /**
  * Synchronously parse an already loaded .msh file buffer.
  */
@@ -135,16 +135,16 @@ class _MSHMesh {
         /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$Elements')
             _MSHMesh._throwInvalidFormatError();
-        // Read the number of elements.
+        // Read the number of elementIndices.
         const numElements = parseInt(this._parseNextLineAsUTF8(uint8Array));
         const elementsArray = [];
         for (let i = 0; i < numElements; i++) {
             elementsArray.push([]);
         }
-        this.elements = elementsArray;
-        // Check if all elements are tetrahedra.
+        this.elementIndices = elementsArray;
+        // Check if all elementIndices are tetrahedra.
         let isTetMesh = true;
-        // Loop through the elements.
+        // Loop through the elementIndices.
         let elementIndex = 0;
         let tagWarning = false;
         if (isBinary) {
@@ -279,7 +279,7 @@ class _MSHMesh {
                     indices[j] = newIndices[indices[j]];
                 }
             }
-            this._exteriorFaces = exteriorFacesArray;
+            this._exteriorFaceIndices = exteriorFacesArray;
         }
     }
     get nodes() {
@@ -339,66 +339,66 @@ class _MSHMesh {
             nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
         ];
     }
-    get edges() {
-        if (!this._edges) {
-            const { elements, isTetMesh } = this;
+    get edgeIndices() {
+        if (!this._edgeIndices) {
+            const { elementIndices, isTetMesh } = this;
             /* c8 ignore next */
             if (!isTetMesh)
-                throw new Error(`msh-parser: MSHMesh.edges is not defined for non-tet meshes.`);
-            // Calc all edges in mesh, use hash table to cover each edge only once.
-            const edgesHash = {};
-            const edges = [];
-            for (let i = 0, numElements = elements.length; i < numElements; i++) {
-                const elementIndices = elements[i];
+                throw new Error(`msh-parser: MSHMesh.edgeIndices is not defined for non-tet meshes.`);
+            // Calc all edgeIndices in mesh, use hash table to cover each edge only once.
+            const edgeIndicesHash = {};
+            const edgeIndices = [];
+            for (let i = 0, numElements = elementIndices.length; i < numElements; i++) {
+                const element = elementIndices[i];
                 // For tetrahedra, create an edge between each pair of nodes in element.
-                const numNodes = elementIndices.length;
+                const numNodes = element.length;
                 for (let j = 0; j < numNodes; j++) {
                     for (let k = j + 1; k < numNodes; k++) {
-                        const a = elementIndices[j];
-                        const b = elementIndices[k];
+                        const a = element[j];
+                        const b = element[k];
                         const key = makeEdgeHash(a, b);
                         // Only add each edge once.
-                        if (edgesHash[key] === undefined) {
-                            edgesHash[key] = true;
-                            edges.push(a, b);
+                        if (edgeIndicesHash[key] === undefined) {
+                            edgeIndicesHash[key] = true;
+                            edgeIndices.push(a, b);
                         }
                     }
                 }
             }
-            this._edges = new Uint32Array(edges);
+            this._edgeIndices = new Uint32Array(edgeIndices);
             ;
         }
-        return this._edges;
+        return this._edgeIndices;
     }
-    set edges(edges) {
-        throw new Error(`msh-parser: No edges setter.`);
+    set edgeIndices(edgeIndices) {
+        throw new Error(`msh-parser: No edgeIndices setter.`);
     }
-    get exteriorEdges() {
-        if (!this._exteriorEdges) {
-            const { isTetMesh, _exteriorFaces } = this;
+    get exteriorEdgeIndices() {
+        if (!this._exteriorEdgeIndices) {
+            const { isTetMesh, _exteriorFaceIndices } = this;
             /* c8 ignore next */
             if (!isTetMesh)
-                throw new Error(`msh-parser: MSHMesh.exteriorEdges is not defined for non-tet meshes.`);
-            const edges = calcEdgesFromNestedIndexedFaces({ faceIndices: _exteriorFaces });
-            this._exteriorEdges = new Uint32Array(edges);
+                throw new Error(`msh-parser: MSHMesh.exteriorEdgeIndices is not defined for non-tet meshes.`);
+            const edgeIndices = calcEdgeIndicesFromNestedIndexedFaces({ faceIndices: _exteriorFaceIndices });
+            this._exteriorEdgeIndices = new Uint32Array(edgeIndices);
         }
-        return this._exteriorEdges;
+        return this._exteriorEdgeIndices;
     }
-    set exteriorEdges(exteriorEdges) {
-        throw new Error(`msh-parser: No exteriorEdges setter.`);
+    set exteriorEdgeIndices(exteriorEdgeIndices) {
+        throw new Error(`msh-parser: No exteriorEdgeIndices setter.`);
     }
-    get exteriorFaces() {
+    get exteriorFaceIndices() {
         /* c8 ignore next */
-        if (!this.isTetMesh || !this._exteriorFaces)
-            throw new Error(`msh-parser: MSHMesh.exteriorFaces is not defined for non-tet meshes.`);
-        return this._exteriorFaces;
+        if (!this.isTetMesh || !this._exteriorFaceIndices)
+            throw new Error(`msh-parser: MSHMesh.exteriorFaceIndices is not defined for non-tet meshes.`);
+        return this._exteriorFaceIndices;
     }
-    set exteriorFaces(exteriorFaces) {
-        throw new Error(`msh-parser: No exteriorFaces setter.`);
+    set exteriorFaceIndices(exteriorFaceIndices) {
+        throw new Error(`msh-parser: No exteriorFaceIndices setter.`);
     }
     static _tetrahedronVolume(indices, nodesArray) {
         const [a, b, c, d] = indices;
-        // Calculate the vectors representing the edges of the tetrahedron.
+        // Calculate the vectors representing the edgeIndices of the tetrahedron.
         const v1 = _MSHMesh._vecFromTo(d, a, nodesArray);
         const v2 = _MSHMesh._vecFromTo(d, b, nodesArray);
         const v3 = _MSHMesh._vecFromTo(d, c, nodesArray);
@@ -409,14 +409,14 @@ class _MSHMesh {
     }
     get elementVolumes() {
         if (!this._elementVolumes) {
-            const { elements, nodes, isTetMesh } = this;
+            const { elementIndices, nodes, isTetMesh } = this;
             /* c8 ignore next */
             if (!isTetMesh)
                 throw new Error(`msh-parser: MSHMesh.elementVolumes is not defined for non-tet meshes.`);
-            const numElements = elements.length;
+            const numElements = elementIndices.length;
             const volumes = new Float32Array(numElements);
             for (let i = 0; i < numElements; i++) {
-                volumes[i] = _MSHMesh._tetrahedronVolume(elements[i], nodes);
+                volumes[i] = _MSHMesh._tetrahedronVolume(elementIndices[i], nodes);
             }
             this._elementVolumes = volumes;
         }
@@ -427,14 +427,14 @@ class _MSHMesh {
     }
     get nodalVolumes() {
         if (!this._nodalVolumes) {
-            const { elements, nodes, isTetMesh } = this;
+            const { elementIndices, nodes, isTetMesh } = this;
             /* c8 ignore next */
             if (!isTetMesh)
                 throw new Error(`msh-parser: MSHMesh.nodalVolumes is not defined for non-tet meshes.`);
             const { elementVolumes } = this;
             const nodalVolumes = new Float32Array(nodes.length / 3);
-            for (let i = 0, numElements = elements.length; i < numElements; i++) {
-                const nodeIndices = elements[i];
+            for (let i = 0, numElements = elementIndices.length; i < numElements; i++) {
+                const nodeIndices = elementIndices[i];
                 const numNodeIndices = nodeIndices.length;
                 for (let j = 0; j < numNodeIndices; j++) {
                     const nodeIndex = nodeIndices[j];
