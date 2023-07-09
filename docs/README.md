@@ -25,12 +25,12 @@ msh-parser
 | Name | Type |
 | :------ | :------ |
 | `nodes` | `Float64Array` \| `Float32Array` |
+| `nodalVolumes` | `Float32Array` |
 | `elementIndices` | `number`[][] |
+| `elementVolumes` | `Float32Array` |
 | `edgeIndices` | `Uint32Array` |
 | `exteriorEdgeIndices` | `Uint32Array` |
 | `exteriorFaceIndices` | `number`[][] |
-| `elementVolumes` | `Float32Array` |
-| `nodalVolumes` | `Float32Array` |
 | `isTetMesh` | `boolean` |
 | `numExteriorNodes` | `number` |
 | `boundingBox` | { `min`: `number`[] ; `max`: `number`[]  } |

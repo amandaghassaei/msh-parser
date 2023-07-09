@@ -23,6 +23,7 @@ export function loadMSH(urlOrFile, callback) {
         // Made this compatible with Node and the browser, maybe there is a better way?
         /* c8 ignore start */
         if (typeof window !== 'undefined') {
+            // Browser.
             // Load the file with XMLHttpRequest.
             const request = new XMLHttpRequest();
             request.open('GET', urlOrFile, true);

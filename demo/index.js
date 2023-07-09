@@ -210,16 +210,16 @@ function removeThreeObject(object) {
 	object.geometry.dispose();
 }
 
-function initExternalMesh(positionsAttribute, exteriorFaces) {
+function initExternalMesh(positionsAttribute, exteriorFaceIndices) {
 	// Remove previous mesh.
 	if (externalMesh) removeThreeObject(externalMesh);
 
 	// Create an array of triangle indices for the buffer geometry.
-	const numTriangles = exteriorFaces.length;
+	const numTriangles = exteriorFaceIndices.length;
 	const indices = new Uint32Array(numTriangles * 3);
 	for (let i = 0; i < numTriangles; i++) {
 		for (let j = 0; j < 3; j++) {
-			indices[3 * i + j] = exteriorFaces[i][j];
+			indices[3 * i + j] = exteriorFaceIndices[i][j];
 		}
 	}
 
@@ -237,17 +237,17 @@ function initExternalMesh(positionsAttribute, exteriorFaces) {
 	return mesh;
 }
 
-function initInternalMesh(positionsAttribute, elements, numExteriorNodes) {
+function initInternalMesh(positionsAttribute, elementIndices, numExteriorNodes) {
 	// Remove previous mesh.
 	if (internalMesh) removeThreeObject(internalMesh);
 
 	// Init internal mesh.
-	const numElements = elements.length;
+	const numElements = elementIndices.length;
 	const indices = new Uint32Array(numElements * 4 * 3);
 	const hash = {};
 	// First calc all internal triangles.
 	for (let i = 0; i < numElements; i++) {
-		const nodeIndices = elements[i];
+		const nodeIndices = elementIndices[i];
 		for (let j = 0; j < 4; j++) {
 			const a = nodeIndices[j];
 			const b = nodeIndices[(j + 1) % 4];
@@ -293,7 +293,7 @@ function initWireframe(positionsAttribute, mshData) {
 
 	// Add wireframe.
 	const geometry = new THREE.BufferGeometry();
-	geometry.setIndex(new THREE.BufferAttribute(mshData.edges, 1));
+	geometry.setIndex(new THREE.BufferAttribute(mshData.edgeIndices, 1));
 	geometry.setAttribute('position', positionsAttribute);
 	const material = shaderMaterialWireframe.clone();
 	material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
@@ -305,9 +305,9 @@ function initWireframe(positionsAttribute, mshData) {
 function initThreeJSGeometry(mshData) {
 	const {
 		nodes,
-		elements,
+		elementIndices,
 		isTetMesh,
-		exteriorFaces,
+		exteriorFaceIndices,
 		numExteriorNodes,
 	} = mshData;
 
@@ -318,15 +318,15 @@ function initThreeJSGeometry(mshData) {
 
 	setInfo(`${(nodes.length / 3).toLocaleString()} nodes<br/>
 		${numExteriorNodes.toLocaleString()} exterior nodes<br/>
-		${elements.length.toLocaleString()} elements<br/>
-		${exteriorFaces.length.toLocaleString()} exterior faces`);
+		${elementIndices.length.toLocaleString()} elements<br/>
+		${exteriorFaceIndices.length.toLocaleString()} exterior faces`);
 
 	// Share positions attribute between meshes.
 	const positions = nodes.constructor === Float32Array ? nodes : new Float32Array(nodes);
 	const positionsAttribute = new THREE.BufferAttribute(positions, 3);
 
-	externalMesh = initExternalMesh(positionsAttribute, exteriorFaces);
-	internalMesh = initInternalMesh(positionsAttribute, elements, numExteriorNodes);
+	externalMesh = initExternalMesh(positionsAttribute, exteriorFaceIndices);
+	internalMesh = initInternalMesh(positionsAttribute, elementIndices, numExteriorNodes);
 	wireframe = initWireframe(positionsAttribute, mshData);
 
 	// Center and scale the positions attribute.

@@ -13,12 +13,12 @@ export declare function loadMSHAsync(urlOrFile: string | File): Promise<MSHMesh>
 export declare function loadMSH(urlOrFile: string | File, callback: (mesh: MSHMesh) => void): void;
 export type MSHMesh = {
     readonly nodes: Float64Array | Float32Array;
+    readonly nodalVolumes: Float32Array;
     readonly elementIndices: number[][];
+    readonly elementVolumes: Float32Array;
     readonly edgeIndices: Uint32Array;
     readonly exteriorEdgeIndices: Uint32Array;
     readonly exteriorFaceIndices: number[][];
-    readonly elementVolumes: Float32Array;
-    readonly nodalVolumes: Float32Array;
     readonly isTetMesh: boolean;
     readonly numExteriorNodes: number;
     readonly boundingBox: {

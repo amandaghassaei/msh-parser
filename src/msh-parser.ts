@@ -31,7 +31,7 @@ export function loadMSH(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 		// Made this compatible with Node and the browser, maybe there is a better way?
 		/* c8 ignore start */
 		if (typeof window !== 'undefined') {
-			
+			// Browser.
 			// Load the file with XMLHttpRequest.
 			const request = new XMLHttpRequest();
 			request.open('GET', urlOrFile, true);
@@ -68,12 +68,12 @@ export function loadMSH(urlOrFile: string | File, callback: (mesh: MSHMesh) => v
 // Export just the type, keep the class private.
 export type MSHMesh = {
 	readonly nodes: Float64Array | Float32Array;
+	readonly nodalVolumes: Float32Array;
 	readonly elementIndices: number[][];
+	readonly elementVolumes: Float32Array;
 	readonly edgeIndices: Uint32Array;
 	readonly exteriorEdgeIndices: Uint32Array;
 	readonly exteriorFaceIndices: number[][];
-	readonly elementVolumes: Float32Array;
-	readonly nodalVolumes: Float32Array;
 	readonly isTetMesh: boolean;
 	readonly numExteriorNodes: number;
 	readonly boundingBox: { min: number[], max: number[] };
