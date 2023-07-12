@@ -28,9 +28,9 @@ msh-parser
 | `nodalVolumes` | `Float32Array` |
 | `elementIndices` | `number`[][] |
 | `elementVolumes` | `Float32Array` |
-| `edgeIndices` | `Uint32Array` |
-| `exteriorEdgeIndices` | `Uint32Array` |
-| `exteriorFaceIndices` | `number`[][] |
+| `edgesIndices` | `Uint32Array` |
+| `exteriorEdgesIndices` | `Uint32Array` |
+| `exteriorFacesIndices` | `number`[][] |
 | `isTetMesh` | `boolean` |
 | `numExteriorNodes` | `number` |
 | `boundingBox` | { `min`: `number`[] ; `max`: `number`[]  } |

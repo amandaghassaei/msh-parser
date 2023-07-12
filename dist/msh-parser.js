@@ -1,4 +1,4 @@
-import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgeIndicesFromNestedIndexedFaces, makeEdgeHash, makeTriangleFaceHash, } from '@amandaghassaei/3d-mesh-utils';
+import { calcBoundingBox, scaleVerticesToUnitBoundingBox, calcEdgesIndicesFromNestedIndexedFaces, makeEdgeHash, makeTriangleFaceHash, } from '@amandaghassaei/3d-mesh-utils';
 /**
  * Synchronously parse an already loaded .msh file buffer.
  */
@@ -280,7 +280,7 @@ class _MSHMesh {
                     indices[j] = newIndices[indices[j]];
                 }
             }
-            this._exteriorFaceIndices = exteriorFacesArray;
+            this._exteriorFacesIndices = exteriorFacesArray;
         }
     }
     get nodes() {
@@ -340,15 +340,15 @@ class _MSHMesh {
             nodesArray[3 * to + 2] - nodesArray[3 * from + 2],
         ];
     }
-    get edgeIndices() {
-        if (!this._edgeIndices) {
+    get edgesIndices() {
+        if (!this._edgesIndices) {
             const { elementIndices, isTetMesh } = this;
             /* c8 ignore next */
             if (!isTetMesh)
-                throw new Error(`msh-parser: MSHMesh.edgeIndices is not defined for non-tet meshes.`);
-            // Calc all edgeIndices in mesh, use hash table to cover each edge only once.
-            const edgeIndicesHash = {};
-            const edgeIndices = [];
+                throw new Error(`msh-parser: MSHMesh.edgesIndices is not defined for non-tet meshes.`);
+            // Calc all edgesIndices in mesh, use hash table to cover each edge only once.
+            const edgesIndicesHash = {};
+            const edgesIndices = [];
             for (let i = 0, numElements = elementIndices.length; i < numElements; i++) {
                 const element = elementIndices[i];
                 // For tetrahedra, create an edge between each pair of nodes in element.
@@ -359,47 +359,47 @@ class _MSHMesh {
                         const b = element[k];
                         const key = makeEdgeHash(a, b);
                         // Only add each edge once.
-                        if (edgeIndicesHash[key] === undefined) {
-                            edgeIndicesHash[key] = true;
-                            edgeIndices.push(a, b);
+                        if (edgesIndicesHash[key] === undefined) {
+                            edgesIndicesHash[key] = true;
+                            edgesIndices.push(a, b);
                         }
                     }
                 }
             }
-            this._edgeIndices = new Uint32Array(edgeIndices);
+            this._edgesIndices = new Uint32Array(edgesIndices);
             ;
         }
-        return this._edgeIndices;
+        return this._edgesIndices;
     }
-    set edgeIndices(edgeIndices) {
-        throw new Error(`msh-parser: No edgeIndices setter.`);
+    set edgesIndices(edgesIndices) {
+        throw new Error(`msh-parser: No edgesIndices setter.`);
     }
-    get exteriorEdgeIndices() {
-        if (!this._exteriorEdgeIndices) {
-            const { isTetMesh, _exteriorFaceIndices } = this;
+    get exteriorEdgesIndices() {
+        if (!this._exteriorEdgesIndices) {
+            const { isTetMesh, _exteriorFacesIndices } = this;
             /* c8 ignore next */
             if (!isTetMesh)
-                throw new Error(`msh-parser: MSHMesh.exteriorEdgeIndices is not defined for non-tet meshes.`);
-            const edgeIndices = calcEdgeIndicesFromNestedIndexedFaces({ faceIndices: _exteriorFaceIndices });
-            this._exteriorEdgeIndices = new Uint32Array(edgeIndices);
+                throw new Error(`msh-parser: MSHMesh.exteriorEdgesIndices is not defined for non-tet meshes.`);
+            const edgesIndices = calcEdgesIndicesFromNestedIndexedFaces({ facesIndices: _exteriorFacesIndices });
+            this._exteriorEdgesIndices = new Uint32Array(edgesIndices);
         }
-        return this._exteriorEdgeIndices;
+        return this._exteriorEdgesIndices;
     }
-    set exteriorEdgeIndices(exteriorEdgeIndices) {
-        throw new Error(`msh-parser: No exteriorEdgeIndices setter.`);
+    set exteriorEdgesIndices(exteriorEdgesIndices) {
+        throw new Error(`msh-parser: No exteriorEdgesIndices setter.`);
     }
-    get exteriorFaceIndices() {
+    get exteriorFacesIndices() {
         /* c8 ignore next */
-        if (!this.isTetMesh || !this._exteriorFaceIndices)
-            throw new Error(`msh-parser: MSHMesh.exteriorFaceIndices is not defined for non-tet meshes.`);
-        return this._exteriorFaceIndices;
+        if (!this.isTetMesh || !this._exteriorFacesIndices)
+            throw new Error(`msh-parser: MSHMesh.exteriorFacesIndices is not defined for non-tet meshes.`);
+        return this._exteriorFacesIndices;
     }
-    set exteriorFaceIndices(exteriorFaceIndices) {
-        throw new Error(`msh-parser: No exteriorFaceIndices setter.`);
+    set exteriorFacesIndices(exteriorFacesIndices) {
+        throw new Error(`msh-parser: No exteriorFacesIndices setter.`);
     }
     static _tetrahedronVolume(indices, nodesArray) {
         const [a, b, c, d] = indices;
-        // Calculate the vectors representing the edgeIndices of the tetrahedron.
+        // Calculate the vectors representing the edgesIndices of the tetrahedron.
         const v1 = _MSHMesh._vecFromTo(d, a, nodesArray);
         const v2 = _MSHMesh._vecFromTo(d, b, nodesArray);
         const v3 = _MSHMesh._vecFromTo(d, c, nodesArray);

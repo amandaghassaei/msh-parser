@@ -16,9 +16,9 @@ export type MSHMesh = {
     readonly nodalVolumes: Float32Array;
     readonly elementIndices: number[][];
     readonly elementVolumes: Float32Array;
-    readonly edgeIndices: Uint32Array;
-    readonly exteriorEdgeIndices: Uint32Array;
-    readonly exteriorFaceIndices: number[][];
+    readonly edgesIndices: Uint32Array;
+    readonly exteriorEdgesIndices: Uint32Array;
+    readonly exteriorFacesIndices: number[][];
     readonly isTetMesh: boolean;
     readonly numExteriorNodes: number;
     readonly boundingBox: {

@@ -15,7 +15,7 @@ describe('mesh-parser', () => {
 					nodes,
 					elementIndices,
 					isTetMesh,
-					exteriorFaceIndices,
+					exteriorFacesIndices,
 					numExteriorNodes,
 				} = mesh;
 				expect(nodes.constructor).to.equal(Float64Array);
@@ -23,10 +23,10 @@ describe('mesh-parser', () => {
 				expect(elementIndices.length).to.equal(27232);
 				expect(elementIndices[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
-				expect(exteriorFaceIndices!.length).to.equal(14024);
-				for (let i = 0; i < exteriorFaceIndices!.length; i++) {
-					for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
-						expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
+				expect(exteriorFacesIndices!.length).to.equal(14024);
+				for (let i = 0; i < exteriorFacesIndices!.length; i++) {
+					for (let j = 0; j < exteriorFacesIndices![i].length; j++) {
+						expect(exteriorFacesIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 					}
 				}
 				expect(numExteriorNodes).to.equal(7014);
@@ -38,7 +38,7 @@ describe('mesh-parser', () => {
 					nodes,
 					elementIndices,
 					isTetMesh,
-					exteriorFaceIndices,
+					exteriorFacesIndices,
 					numExteriorNodes,
 				} = mesh;
 				expect(nodes.constructor).to.equal(Float64Array);
@@ -46,10 +46,10 @@ describe('mesh-parser', () => {
 				expect(elementIndices.length).to.equal(16753);
 				expect(elementIndices[0].length).to.equal(4);
 				expect(isTetMesh).to.equal(true);
-				expect(exteriorFaceIndices!.length).to.equal(8746);
-				for (let i = 0; i < exteriorFaceIndices!.length; i++) {
-					for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
-						expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
+				expect(exteriorFacesIndices!.length).to.equal(8746);
+				for (let i = 0; i < exteriorFacesIndices!.length; i++) {
+					for (let j = 0; j < exteriorFacesIndices![i].length; j++) {
+						expect(exteriorFacesIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 					}
 				}
 				expect(numExteriorNodes).to.equal(4373);
@@ -63,7 +63,7 @@ describe('mesh-parser', () => {
 				nodes,
 				elementIndices,
 				isTetMesh,
-				exteriorFaceIndices,
+				exteriorFacesIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
@@ -71,10 +71,10 @@ describe('mesh-parser', () => {
 			expect(elementIndices.length).to.equal(27232);
 			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaceIndices!.length).to.equal(14024);
-			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
-				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
-					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFacesIndices!.length).to.equal(14024);
+			for (let i = 0; i < exteriorFacesIndices!.length; i++) {
+				for (let j = 0; j < exteriorFacesIndices![i].length; j++) {
+					expect(exteriorFacesIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(7014);
@@ -85,7 +85,7 @@ describe('mesh-parser', () => {
 				nodes,
 				elementIndices,
 				isTetMesh,
-				exteriorFaceIndices,
+				exteriorFacesIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
@@ -93,10 +93,10 @@ describe('mesh-parser', () => {
 			expect(elementIndices.length).to.equal(16753);
 			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaceIndices!.length).to.equal(8746);
-			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
-				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
-					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFacesIndices!.length).to.equal(8746);
+			for (let i = 0; i < exteriorFacesIndices!.length; i++) {
+				for (let j = 0; j < exteriorFacesIndices![i].length; j++) {
+					expect(exteriorFacesIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(4373);
@@ -109,7 +109,7 @@ describe('mesh-parser', () => {
 				nodes,
 				elementIndices,
 				isTetMesh,
-				exteriorFaceIndices,
+				exteriorFacesIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
@@ -117,10 +117,10 @@ describe('mesh-parser', () => {
 			expect(elementIndices.length).to.equal(27232);
 			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaceIndices!.length).to.equal(14024);
-			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
-				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
-					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFacesIndices!.length).to.equal(14024);
+			for (let i = 0; i < exteriorFacesIndices!.length; i++) {
+				for (let j = 0; j < exteriorFacesIndices![i].length; j++) {
+					expect(exteriorFacesIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(7014);
@@ -131,7 +131,7 @@ describe('mesh-parser', () => {
 				nodes,
 				elementIndices,
 				isTetMesh,
-				exteriorFaceIndices,
+				exteriorFacesIndices,
 				numExteriorNodes,
 			} = mesh;
 			expect(nodes.constructor).to.equal(Float64Array);
@@ -139,10 +139,10 @@ describe('mesh-parser', () => {
 			expect(elementIndices.length).to.equal(16753);
 			expect(elementIndices[0].length).to.equal(4);
 			expect(isTetMesh).to.equal(true);
-			expect(exteriorFaceIndices!.length).to.equal(8746);
-			for (let i = 0; i < exteriorFaceIndices!.length; i++) {
-				for (let j = 0; j < exteriorFaceIndices![i].length; j++) {
-					expect(exteriorFaceIndices![i][j]).to.be.lessThan(numExteriorNodes!);
+			expect(exteriorFacesIndices!.length).to.equal(8746);
+			for (let i = 0; i < exteriorFacesIndices!.length; i++) {
+				for (let j = 0; j < exteriorFacesIndices![i].length; j++) {
+					expect(exteriorFacesIndices![i][j]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			expect(numExteriorNodes).to.equal(4373);
@@ -150,8 +150,8 @@ describe('mesh-parser', () => {
 	});
 	describe('helper functions', () => {
 		it('calculates edgeIndices', () => {
-			expect(parseMSH(stanfordBunny).edgeIndices.length).to.equal(85470);
-			expect(parseMSH(wingnut).edgeIndices.length).to.equal(52634);
+			expect(parseMSH(stanfordBunny).edgesIndices.length).to.equal(85470);
+			expect(parseMSH(wingnut).edgesIndices.length).to.equal(52634);
 			// // Should only work for tet meshes.
 			// // @ts-ignore
 			// assert.throws(() => { MSHParser.calculateEdges({}); },
@@ -160,18 +160,18 @@ describe('mesh-parser', () => {
 		it('calculates exterior edges', () => {
 			{
 				const mesh = parseMSH(stanfordBunny);
-				const { numExteriorNodes, exteriorEdgeIndices } = mesh;
-				expect(exteriorEdgeIndices.length).to.equal(42072);
-				for (let i = 0; i < exteriorEdgeIndices.length; i++) {
-					expect(exteriorEdgeIndices[i]).to.be.lessThan(numExteriorNodes!);
+				const { numExteriorNodes, exteriorEdgesIndices } = mesh;
+				expect(exteriorEdgesIndices.length).to.equal(42072);
+				for (let i = 0; i < exteriorEdgesIndices.length; i++) {
+					expect(exteriorEdgesIndices[i]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			{
 				const mesh = parseMSH(wingnut);
-				const { numExteriorNodes, exteriorEdgeIndices } = mesh;
-				expect(exteriorEdgeIndices.length).to.equal(26238);
-				for (let i = 0; i < exteriorEdgeIndices.length; i++) {
-					expect(exteriorEdgeIndices[i]).to.be.lessThan(numExteriorNodes!);
+				const { numExteriorNodes, exteriorEdgesIndices } = mesh;
+				expect(exteriorEdgesIndices.length).to.equal(26238);
+				for (let i = 0; i < exteriorEdgesIndices.length; i++) {
+					expect(exteriorEdgesIndices[i]).to.be.lessThan(numExteriorNodes!);
 				}
 			}
 			// // Should only work for tet meshes.

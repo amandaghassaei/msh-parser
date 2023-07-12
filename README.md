@@ -62,9 +62,9 @@ loadMSH('./bunny.msh', (mesh) => {
   const {
     nodes,
     elementIndices,
-    edgeIndices,
-    exteriorEdgeIndices,
-    exteriorFaceIndices,
+    edgesIndices,
+    exteriorEdgesIndices,
+    exteriorFacesIndices,
     elementVolumes,
     nodalVolumes,
     isTetMesh,
@@ -88,9 +88,9 @@ const mesh = parseMSH(fs.readFileSync('./bunny.msh'));
   ...
 ]
 ```
-- `edgeIndices` (tet-meshes only for now) is a Uint32Array containing all pairs of edgeIndices in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  `edgeIndices` is calculated when queried and then cached.
-- `exteriorEdgeIndices` (tet-meshes only for now) is a Uint32Array containing all pairs of exterior edgeIndices in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  `exteriorEdgeIndices` is calculated when queried and then cached.
-- `exteriorFaceIndices` (tet-meshes only for now) is a 2 dimensional array of node indices corresponding to the exterior faces of the mesh.  For a tetrahedral mesh, all exterior faces will be triangles, but face shape may vary for other types of meshes.  Triangular exterior faces have CC winding order.  `exteriorFacesArray` has the following structure:
+- `edgesIndices` (tet-meshes only for now) is a Uint32Array containing all pairs of edgesIndices in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  `edgesIndices` is calculated when queried and then cached.
+- `exteriorEdgesIndices` (tet-meshes only for now) is a Uint32Array containing all pairs of exterior edgesIndices in the mesh.  Node indices are in the form: `[e01, e02, e11, e12, ...]`.  `exteriorEdgesIndices` is calculated when queried and then cached.
+- `exteriorFacesIndices` (tet-meshes only for now) is a 2 dimensional array of node indices corresponding to the exterior faces of the mesh.  For a tetrahedral mesh, all exterior faces will be triangles, but face shape may vary for other types of meshes.  Triangular exterior faces have CC winding order.  `exteriorFacesArray` has the following structure:
 ```js
 [
   [f0a, f0b, f0c], // Face 0
@@ -101,7 +101,7 @@ const mesh = parseMSH(fs.readFileSync('./bunny.msh'));
 - `elementVolumes` (tet-meshes only for now) is a Float32Array containing the volume of all elements in the mesh.  `elementVolumes` is calculated when queried and then cached.
 - `nodalVolumes` (tet-meshes only for now) is a Float32Array containing the approximate volume of all nodes in the mesh.  This is calculated by evenly distributing element volume across adjacent nodes.  `nodalVolumes` is calculated when queried and then cached.
 - `isTetMesh` is a boolean that indicates all mesh elements are tetrahedra.
-- `numExteriorNodes` (tet-meshes only for now) is the number of nodes that lie on the exterior of the mesh.  `nodes` has been ordered so that the nodes in the range [0, numExteriorNodes - 1] correspond to the nodes referenced by `exteriorFaceIndices`.
+- `numExteriorNodes` (tet-meshes only for now) is the number of nodes that lie on the exterior of the mesh.  `nodes` has been ordered so that the nodes in the range [0, numExteriorNodes - 1] correspond to the nodes referenced by `exteriorFacesIndices`.
 - `boundingBox` is the min and max of the mesh's bounding box in the form: `{ min: [x, y, z], max: [x, y, z] }`.  `boundingBox` is calculated when queried and then cached.
 
 
