@@ -210,16 +210,16 @@ function removeThreeObject(object) {
 	object.geometry.dispose();
 }
 
-function initExternalMesh(positionsAttribute, exteriorFaceIndices) {
+function initExternalMesh(positionsAttribute, exteriorFacesIndices) {
 	// Remove previous mesh.
 	if (externalMesh) removeThreeObject(externalMesh);
 
 	// Create an array of triangle indices for the buffer geometry.
-	const numTriangles = exteriorFaceIndices.length;
+	const numTriangles = exteriorFacesIndices.length;
 	const indices = new Uint32Array(numTriangles * 3);
 	for (let i = 0; i < numTriangles; i++) {
 		for (let j = 0; j < 3; j++) {
-			indices[3 * i + j] = exteriorFaceIndices[i][j];
+			indices[3 * i + j] = exteriorFacesIndices[i][j];
 		}
 	}
 
@@ -293,7 +293,7 @@ function initWireframe(positionsAttribute, mshData) {
 
 	// Add wireframe.
 	const geometry = new THREE.BufferGeometry();
-	geometry.setIndex(new THREE.BufferAttribute(mshData.edgeIndices, 1));
+	geometry.setIndex(new THREE.BufferAttribute(mshData.edgesIndices, 1));
 	geometry.setAttribute('position', positionsAttribute);
 	const material = shaderMaterialWireframe.clone();
 	material.uniforms.u_color.value = new THREE.Color(PARAMS.wireframe).toArray();
@@ -307,7 +307,7 @@ function initThreeJSGeometry(mshData) {
 		nodes,
 		elementIndices,
 		isTetMesh,
-		exteriorFaceIndices,
+		exteriorFacesIndices,
 		numExteriorNodes,
 	} = mshData;
 
@@ -319,13 +319,13 @@ function initThreeJSGeometry(mshData) {
 	setInfo(`${(nodes.length / 3).toLocaleString()} nodes<br/>
 		${numExteriorNodes.toLocaleString()} exterior nodes<br/>
 		${elementIndices.length.toLocaleString()} elements<br/>
-		${exteriorFaceIndices.length.toLocaleString()} exterior faces`);
+		${exteriorFacesIndices.length.toLocaleString()} exterior faces`);
 
 	// Share positions attribute between meshes.
 	const positions = nodes.constructor === Float32Array ? nodes : new Float32Array(nodes);
 	const positionsAttribute = new THREE.BufferAttribute(positions, 3);
 
-	externalMesh = initExternalMesh(positionsAttribute, exteriorFaceIndices);
+	externalMesh = initExternalMesh(positionsAttribute, exteriorFacesIndices);
 	internalMesh = initInternalMesh(positionsAttribute, elementIndices, numExteriorNodes);
 	wireframe = initWireframe(positionsAttribute, mshData);
 
