@@ -101,6 +101,21 @@ describe('mesh-parser', () => {
 			}
 			expect(numExteriorNodes).to.equal(4373);
 		});
+		it('loads ascii.msh', async () => {
+			const mesh = await loadMSHAsync('./test/msh/ascii.msh');
+			const {
+				nodes,
+				elementIndices,
+				isTetMesh,
+			} = mesh;
+			expect(nodes.constructor).to.equal(Float64Array);
+			expect(nodes.length).to.equal(992163);
+			expect(elementIndices.length).to.equal(2017846);
+			// Filled with triangles and tets.
+			expect(elementIndices[0].length).to.equal(3);
+			expect(elementIndices[2000000].length).to.equal(4);
+			expect(isTetMesh).to.equal(false);
+		});
 	});
 	describe('parseMSH', () => {
 		it('parses stanford_bunny.msh', () => {
@@ -262,11 +277,11 @@ describe('mesh-parser', () => {
 			// @ts-ignore
 			expect(() => {msh.nodes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No nodes setter.');
 			// @ts-ignore
-			expect(() => {msh.edgeIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No edgeIndices setter.');
+			expect(() => {msh.edgesIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No edgesIndices setter.');
 			// @ts-ignore
-			expect(() => {msh.exteriorEdgeIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No exteriorEdgeIndices setter.');
+			expect(() => {msh.exteriorEdgesIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No exteriorEdgesIndices setter.');
 			// @ts-ignore
-			expect(() => {msh.exteriorFaceIndices = [0, 0, 0, 0, 0, 0, 0, 0, 0]}).to.throw(Error, 'msh-parser: No exteriorFaceIndices setter.');
+			expect(() => {msh.exteriorFacesIndices = [0, 0, 0, 0, 0, 0, 0, 0, 0]}).to.throw(Error, 'msh-parser: No exteriorFacesIndices setter.');
 			// @ts-ignore
 			expect(() => {msh.elementVolumes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No elementVolumes setter.');
 			// @ts-ignore

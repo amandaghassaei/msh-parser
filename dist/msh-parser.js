@@ -80,6 +80,7 @@ class _MSHMesh {
         if (dataSize !== 8 && dataSize !== 4)
             throw new Error(`msh-parser: This library currently parses .msh files with data size === 8 or 4.  Current file has data size = ${dataSize}. Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.`);
         const doublePrecision = dataSize === 8;
+        const isAscii = type === 0;
         const isBinary = type === 1;
         let isLE = false;
         if (isBinary) {
@@ -118,10 +119,23 @@ class _MSHMesh {
                 // Update the current file's byte offset.
                 this._offset += 4 + 3 * dataSize;
             }
+        }
+        else if (isAscii) {
+            for (let i = 0; i < numNodes; i++) {
+                // Read the current node.
+                const nodeString = this._parseNextLineAsUTF8(uint8Array);
+                const nodeValues = nodeString.trim().split(/\s+/);
+                if (nodeValues.length !== 4)
+                    _MSHMesh._throwInvalidFormatError();
+                const index = parseInt(nodeValues[0]); // The .msh node index is 1-indexed.
+                nodesArray[3 * index] = parseFloat(nodeValues[1]);
+                nodesArray[3 * index + 1] = parseFloat(nodeValues[2]);
+                nodesArray[3 * index + 2] = parseFloat(nodeValues[3]);
+            }
             /* c8 ignore next 3 */
         }
         else {
-            throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
+            throw new Error('msh-parser: This library currently only parses binary and ascii .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
         }
         // Check that all nodes are finite.
         for (let i = 0; i < nodesArray.length; i++) {
@@ -193,10 +207,51 @@ class _MSHMesh {
                 }
                 elementIndex += elementNumElements;
             }
+        }
+        else if (isAscii) {
+            while (elementIndex < numElements) {
+                // Parse element header.
+                const elementString = this._parseNextLineAsUTF8(uint8Array);
+                const elementValues = elementString.trim().split(/\s+/);
+                const elementType = parseInt(elementValues[1]);
+                const elementNumTags = parseInt(elementValues[2]);
+                /* c8 ignore next */
+                if (elementType !== 4)
+                    isTetMesh = false;
+                const numElementNodes = _MSHMesh._numNodesPerElementType(elementType);
+                const elementNumElements = 1;
+                for (let i = 0; i < elementNumElements; i++) {
+                    const index = parseInt(elementValues[0]) - 1; // The .msh index is 1-indexed.
+                    /* c8 ignore next */
+                    if (index < 0 || index >= numElements)
+                        throw new Error(`msh-parser: Invalid element index ${index} for numElements === ${numElements}.`);
+                    /* c8 ignore start */
+                    for (let j = 0; j < elementNumTags; j++) {
+                        // const tag = parseFloat(elementValues[3 + j]);
+                        if (!tagWarning) {
+                            tagWarning = true;
+                            console.warn('msh-parser: This library does not currently parse element tags.');
+                        }
+                    }
+                    /* c8 ignore stop */
+                    const nodeIndices = elementsArray[index];
+                    for (let j = 0; j < numElementNodes; j++) {
+                        const nodeIndex = parseInt(elementValues[3 + elementNumTags + j]) - 1; // The .msh index is 1-indexed.
+                        /* c8 ignore next */
+                        if (!_MSHMesh._isFiniteNumber(nodeIndex))
+                            throw new Error('msh-parser: NaN or Inf detected in input file.');
+                        /* c8 ignore next */
+                        if (nodeIndex < 0 || nodeIndex >= numNodes)
+                            throw new Error(`msh-parser: Invalid node index ${nodeIndex} for numNodes === ${numNodes}.`);
+                        nodeIndices.push(nodeIndex);
+                    }
+                }
+                elementIndex += elementNumElements;
+            }
             /* c8 ignore next 3 */
         }
         else {
-            throw new Error('msh-parser: This library does not currently parse non-binary .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
+            throw new Error('msh-parser: This library currently only parses binary and ascii .msh files.  Please submit an issue to the GitHub repo if you encounter this error and attach a sample file.');
         }
         /* c8 ignore next */
         if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements')

@@ -23,9 +23,9 @@
   "scripts": {
     "build": "rollup --config && tsc && npm run docs && npm run test-with-coverage && npm run make-coverage-badge",
     "docs": "typedoc --options ./typedoc.json",
-    "test": "mocha 'test/**/*.ts'",
-    "test-with-coverage": "c8 mocha 'test/**/*.ts'",
-    "make-coverage-badge": "c8 --reporter=json-summary mocha 'test/**/*.ts' && coverage-badge-creator"
+    "test": "mocha --timeout 15000 'test/**/*.ts'",
+    "test-with-coverage": "c8 mocha --timeout 15000 'test/**/*.ts'",
+    "make-coverage-badge": "c8 --reporter=json-summary mocha --timeout 15000 'test/**/*.ts' && coverage-badge-creator"
   },
   "files": [
     "dist",
