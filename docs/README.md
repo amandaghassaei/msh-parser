@@ -36,6 +36,7 @@ msh-parser
 | `boundingBox` | { `min`: `number`[] ; `max`: `number`[]  } |
 | `boundingBox.min` | `number`[] |
 | `boundingBox.max` | `number`[] |
+| `removeNonTetElements` | () => [`MSHMesh`](README.md#mshmesh) |
 | `scaleNodesToUnitBoundingBox` | () => [`MSHMesh`](README.md#mshmesh) |
 
 ## Functions

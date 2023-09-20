@@ -25,5 +25,6 @@ export type MSHMesh = {
         min: number[];
         max: number[];
     };
+    removeNonTetElements: () => MSHMesh;
     scaleNodesToUnitBoundingBox: () => MSHMesh;
 };

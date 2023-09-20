@@ -6,6 +6,7 @@ use(chaiAlmost(0.1));
 
 const stanfordBunny = readFileSync('./test/msh/stanford_bunny.msh');
 const wingnut = readFileSync('./test/msh/wingnut.msh');
+const asciiMsh = readFileSync('./test/msh/ascii.msh');
 
 describe('mesh-parser', () => {
 	describe('loadMSH', () => {
@@ -101,21 +102,6 @@ describe('mesh-parser', () => {
 			}
 			expect(numExteriorNodes).to.equal(4373);
 		});
-		it('loads ascii.msh', async () => {
-			const mesh = await loadMSHAsync('./test/msh/ascii.msh');
-			const {
-				nodes,
-				elementIndices,
-				isTetMesh,
-			} = mesh;
-			expect(nodes.constructor).to.equal(Float64Array);
-			expect(nodes.length).to.equal(992163);
-			expect(elementIndices.length).to.equal(2017846);
-			// Filled with triangles and tets.
-			expect(elementIndices[0].length).to.equal(3);
-			expect(elementIndices[2000000].length).to.equal(4);
-			expect(isTetMesh).to.equal(false);
-		});
 	});
 	describe('parseMSH', () => {
 		it('parses stanford_bunny.msh', () => {
@@ -161,6 +147,23 @@ describe('mesh-parser', () => {
 				}
 			}
 			expect(numExteriorNodes).to.equal(4373);
+		});
+	});
+	describe('works with ascii msh', () => {
+		it('parses ascii.msh', () => {
+			const mesh = parseMSH(asciiMsh);
+			const {
+				nodes,
+				elementIndices,
+				isTetMesh,
+			} = mesh;
+			expect(nodes.constructor).to.equal(Float64Array);
+			expect(nodes.length).to.equal(992163);
+			expect(elementIndices.length).to.equal(2017846);
+			// Filled with triangles and tets.
+			expect(elementIndices[0].length).to.equal(3);
+			expect(elementIndices[2000000].length).to.equal(4);
+			expect(isTetMesh).to.equal(false);
 		});
 	});
 	describe('helper functions', () => {
@@ -272,10 +275,31 @@ describe('mesh-parser', () => {
 				expect(max).to.deep.equal([0.5, 0.21957705870487879, 0.25000942732719283]);
 			}
 		});
+		it('converts to tet mesh', async () => {
+			const mesh = parseMSH(asciiMsh).removeNonTetElements();
+			const {
+				nodes,
+				elementIndices,
+				isTetMesh,
+			} = mesh;
+			expect(nodes.constructor).to.equal(Float64Array);
+			expect(nodes.length).to.equal(992163);
+			expect(elementIndices.length).to.equal(1885262);
+			// Filled with tets only.
+			expect(elementIndices[0].length).to.equal(4);
+			expect(isTetMesh).to.equal(true);
+			// Has exterior faces.
+			expect(mesh.exteriorFacesIndices.length).to.equal(132584);
+			expect(mesh.numExteriorNodes).to.equal(66292);
+		});
 		it('throws errors for invalid setters', () => {
 			const msh = parseMSH(stanfordBunny);
 			// @ts-ignore
 			expect(() => {msh.nodes = new Float32Array(10)}).to.throw(Error, 'msh-parser: No nodes setter.');
+			// @ts-ignore
+			expect(() => {msh.elementIndices = [[1, 2, 3], [3, 4, 5]]}).to.throw(Error, 'msh-parser: No elementIndices setter.');
+			// @ts-ignore
+			expect(() => {msh.isTetMesh = true}).to.throw(Error, 'msh-parser: No isTetMesh setter.');
 			// @ts-ignore
 			expect(() => {msh.edgesIndices = new Uint32Array(10)}).to.throw(Error, 'msh-parser: No edgesIndices setter.');
 			// @ts-ignore

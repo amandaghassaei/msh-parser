@@ -303,6 +303,7 @@ function initWireframe(positionsAttribute, mshData) {
 }
 
 function initThreeJSGeometry(mshData) {
+	mshData.removeNonTetElements();
 	const {
 		nodes,
 		elementIndices,

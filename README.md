@@ -5,7 +5,7 @@
 [![Build Size](https://img.shields.io/bundlephobia/min/msh-parser)](https://bundlephobia.com/result?p=msh-parser)
 [![NPM Downloads](https://img.shields.io/npm/dw/msh-parser)](https://www.npmtrends.com/msh-parser)
 [![License](https://img.shields.io/npm/l/msh-parser)](https://github.com/amandaghassaei/msh-parser/blob/main/LICENSE.txt)
-![](https://img.shields.io/badge/Coverage-95%25-83A603.svg?prefix=$coverage$)
+![](https://img.shields.io/badge/Coverage-98%25-83A603.svg?prefix=$coverage$)
 
 Finite element .msh format loader and parser, works on binary and ascii .msh files – unit tested and written in TypeScript.
 

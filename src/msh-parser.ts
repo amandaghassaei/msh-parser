@@ -77,6 +77,7 @@ export type MSHMesh = {
 	readonly isTetMesh: boolean;
 	readonly numExteriorNodes: number;
 	readonly boundingBox: { min: number[], max: number[] };
+	removeNonTetElements: () => MSHMesh;
 	scaleNodesToUnitBoundingBox: () => MSHMesh;
 }
 
@@ -89,15 +90,15 @@ class _MSHMesh {
 	private _offset = 0;
 
 	private _nodes: Float64Array | Float32Array;
-	readonly elementIndices: number[][];
+	private _elementIndices: number[][];
 	private _edgesIndices?: Uint32Array;
 	private _exteriorEdgesIndices?: Uint32Array;
 	private _elementVolumes?: Float32Array;
 	private _nodalVolumes?: Float32Array;
 	private _boundingBox?: { min: [number, number, number], max: [number, number, number] };
-	readonly isTetMesh: boolean;
-	private readonly _exteriorFacesIndices?: number[][];
-	private readonly _numExteriorNodes?: number;
+	private _isTetMesh: boolean;
+	private _exteriorFacesIndices?: number[][];
+	private _numExteriorNodes?: number;
 
 	constructor(data: ArrayBuffer | Buffer) {
 		const arrayBuffer = (data as Buffer).buffer ? new Uint8Array(data as Buffer).buffer : data;
@@ -157,7 +158,7 @@ class _MSHMesh {
 				const nodeString = this._parseNextLineAsUTF8(uint8Array);
 				const nodeValues = nodeString.trim().split(/\s+/);
 				if (nodeValues.length !== 4) _MSHMesh._throwInvalidFormatError();
-				const index = parseInt(nodeValues[0]); // The .msh node index is 1-indexed.
+				const index = parseInt(nodeValues[0]) - 1; // The .msh node index is 1-indexed.
 				nodesArray[3 * index] = parseFloat(nodeValues[1]);
 				nodesArray[3 * index + 1] = parseFloat(nodeValues[2]);
 				nodesArray[3 * index + 2] = parseFloat(nodeValues[3]);
@@ -180,11 +181,11 @@ class _MSHMesh {
 
 		// Read the number of elementIndices.
 		const numElements = parseInt(this._parseNextLineAsUTF8(uint8Array));
-		const elementsArray: number[][] = [];
+		const elementIndices: number[][] = [];
 		for (let i = 0; i < numElements; i++) {
-			elementsArray.push([]);
+			elementIndices.push([]);
 		}
-		this.elementIndices = elementsArray;
+		this._elementIndices = elementIndices;
 
 		// Check if all elementIndices are tetrahedra.
 		let isTetMesh = true;
@@ -219,7 +220,7 @@ class _MSHMesh {
 					}
 					/* c8 ignore stop */
 					
-					const nodeIndices = elementsArray[index];
+					const nodeIndices = elementIndices[index];
 					for (let j = 0; j < numElementNodes; j++) {
 						const nodeIndex = dataView.getInt32(this._offset, isLE) - 1; // The .msh index is 1-indexed.
 						/* c8 ignore next */
@@ -259,7 +260,7 @@ class _MSHMesh {
 					}
 					/* c8 ignore stop */
 					
-					const nodeIndices = elementsArray[index];
+					const nodeIndices = elementIndices[index];
 					for (let j = 0; j < numElementNodes; j++) {
 						const nodeIndex = parseInt(elementValues[3 + elementNumTags + j]) - 1; // The .msh index is 1-indexed.
 						/* c8 ignore next */
@@ -279,14 +280,21 @@ class _MSHMesh {
 		/* c8 ignore next */
 		if (this._parseNextLineAsUTF8(uint8Array) !== '$EndElements') _MSHMesh._throwInvalidFormatError();
 
-		this.isTetMesh = isTetMesh;
+		this._isTetMesh = isTetMesh;
+		this._calcExteriorFacesIndices();
+	}
+
+	private _calcExteriorFacesIndices() {
+		const { nodes, elementIndices, isTetMesh } = this;
+		const numNodes = nodes.length / 3;
+		const numElements = elementIndices.length;
 		// TODO: make this work for non-tet.
 		if (isTetMesh) {
 			// For tet meshes, calculate exterior faces.
 			// First find all faces that are covered only once, these are on the boundary.
 			const hash: { [key: string]: number[] } = {};
 			for (let i = 0; i < numElements; i++) {
-				const indices = elementsArray[i];
+				const indices = elementIndices[i];
 				for (let j = 0; j < indices.length; j++) {
 					const key = makeTriangleFaceHash(indices[j], indices[(j + 1) % 4], indices[(j + 2) % 4]);
 					if (hash[key]) {
@@ -314,9 +322,9 @@ class _MSHMesh {
 				const d = hash[key][0];
 				// Use d to calculate the winding order of the triangle.
 				const orientation = _MSHMesh._dotProduct(_MSHMesh._crossProduct(
-					_MSHMesh._vecFromTo(a, b, nodesArray),
-					_MSHMesh._vecFromTo(a, c, nodesArray),
-				), _MSHMesh._vecFromTo(a, d, nodesArray));
+					_MSHMesh._vecFromTo(a, b, nodes),
+					_MSHMesh._vecFromTo(a, c, nodes),
+				), _MSHMesh._vecFromTo(a, d, nodes));
 				exteriorFacesArray.push(orientation < 0 ? [a, b, c] : [a, c, b]);
 				// Mark all nodes as exterior.
 				exteriorNodes[a] = 1;
@@ -341,15 +349,15 @@ class _MSHMesh {
 				}
 			}
 			// Now that we have a mapping, update nodesArrays, elementsArray, and exteriorFacesArray.
-			const newNodesArray = nodesArray.slice();
+			const newNodesArray = nodes.slice();
 			for (let i = 0; i < numNodes; i++) {
 				for (let j = 0; j < 3; j++) {
-					newNodesArray[3 * newIndices[i] + j] = nodesArray[3 * i + j];
+					newNodesArray[3 * newIndices[i] + j] = nodes[3 * i + j];
 				}
 			}
 			this._nodes = newNodesArray;
 			for (let i = 0; i < numElements; i++) {
-				const indices = elementsArray[i];
+				const indices = elementIndices[i];
 				for (let j = 0; j < indices.length; j++) {
 					indices[j] = newIndices[indices[j]];
 				}
@@ -370,6 +378,22 @@ class _MSHMesh {
 
 	set nodes(nodes: Float32Array | Float64Array) {
 		throw new Error(`msh-parser: No nodes setter.`);
+	}
+
+	get elementIndices() {
+		return this._elementIndices;
+	}
+
+	set elementIndices(elementIndices: number[][]) {
+		throw new Error(`msh-parser: No elementIndices setter.`);
+	}
+
+	get isTetMesh() {
+		return this._isTetMesh;
+	}
+
+	set isTetMesh(isTetMesh: boolean) {
+		throw new Error(`msh-parser: No isTetMesh setter.`);
 	}
 
 	private _parseNextLineAsUTF8(uint8Array: Uint8Array) {
@@ -570,7 +594,33 @@ class _MSHMesh {
 	}
 
 	/**
+	 * Removes non-tetrahedron elements from the mesh.
+	 * @returns this
+	 */
+	removeNonTetElements() {
+		const { elementIndices, isTetMesh } = this;
+		if (isTetMesh) return this;
+		const tetElementIndices: number[][] = [];
+		for (let i = elementIndices.length - 1; i >= 0; i--) {
+			const element = elementIndices[i];
+			if (element.length === 4) {
+				tetElementIndices.push(element);
+			}
+		}
+		this._elementIndices = tetElementIndices;
+		this._isTetMesh = true;
+		delete this._edgesIndices;
+		delete this._exteriorEdgesIndices;
+		delete this._elementVolumes;
+		delete this._nodalVolumes;
+		delete this._boundingBox;
+		this._calcExteriorFacesIndices();
+		return this;
+	}
+
+	/**
 	 * Scales nodes to unit bounding box and centers around origin.
+	 * @returns this
 	 */
 	scaleNodesToUnitBoundingBox() {
 		scaleVerticesToUnitBoundingBox({
